@@ -341,7 +341,9 @@ public class NestBinding extends AbstractActiveBinding<NestBindingProvider> impl
 		case THERMOSTAT_CURRENT_TEMP_F:
 			return new DecimalType(thermostat.getAmbientTemperatureF());
 		case THERMOSTAT_LAST_UPDATED:
-			return parseDate(thermostat.getLastConnection());
+			logger.warn("Nest type not fully supported yet, type: {}", type);
+//			return parseDate(thermostat.getLastConnection());
+			return new DateTimeType();
 		case THERMOSTAT_CAN_COOL:
 			return thermostat.canCool() ? OnOffType.ON : OnOffType.OFF;
 		case THERMOSTAT_CAN_HEAT:
@@ -359,6 +361,7 @@ public class NestBinding extends AbstractActiveBinding<NestBindingProvider> impl
 		case THERMOSTAT_VERSION:
 			return new StringType(thermostat.getSoftwareVersion());
 		default:
+			logger.error("Type has no valid state to retrieve, type {}", type);
 			return null;
 		}
 	}
@@ -374,9 +377,13 @@ public class NestBinding extends AbstractActiveBinding<NestBindingProvider> impl
 		case PROTECT_IS_ONLINE:
 			return protect.isOnline() ? OnOffType.ON : OnOffType.OFF;
 		case PROTECT_LAST_CONNECTED:
-			return parseDate(protect.getLastConnection());
+			logger.warn("Nest type not fully supported yet, type: {}", type);
+//			return parseDate(protect.getLastConnection());
+			return new DateTimeType();
 		case PROTECT_LAST_MANUAL_TEST:
-			return parseDate(protect.getLastManualTestTime());
+			logger.warn("Nest type not fully supported yet, type: {}", type);
+//			return parseDate(protect.getLastManualTestTime());
+			return new DateTimeType();
 		case PROTECT_NAME:
 			return new StringType(protect.getName());
 		case PROTECT_LONG_NAME:
@@ -386,6 +393,7 @@ public class NestBinding extends AbstractActiveBinding<NestBindingProvider> impl
 		case PROTECT_VERSION:
 			return new StringType(protect.getSoftwareVersion());
 		default:
+			logger.error("Type has no valid state to retrieve, type {}", type);
 			return null;
 		}
 	}
@@ -395,13 +403,19 @@ public class NestBinding extends AbstractActiveBinding<NestBindingProvider> impl
 		case HOUSE_ETA_EARLIEST:
 			ETA etaEarliest = structure.getETA();
 			if(etaEarliest != null){
-				return parseDate(etaEarliest.getEstimatedArrivalWindowBegin());
+				logger.warn("Nest type not fully supported yet, type: {}", type);
+//				return parseDate(etaEarliest.getEstimatedArrivalWindowBegin());
+				return null;
 			}
+			return null;
 		case HOUSE_ETA_LATEST:
 			ETA etaLatest = structure.getETA();
 			if(etaLatest != null){
-				return parseDate(etaLatest.getEstimatedArrivalWindowEnd());
+				logger.warn("Nest type not fully supported yet, type: {}", type);
+//				return parseDate(etaLatest.getEstimatedArrivalWindowEnd());
+				return null;
 			}
+			return null;
 		case HOUSE_NAME:
 			return new StringType(structure.getName());
 		case HOUSE_AWAY_STATE:
@@ -423,9 +437,11 @@ public class NestBinding extends AbstractActiveBinding<NestBindingProvider> impl
 			case UNKNOWN:
 				return new StringType(structure.getAwayState().getKey());
 			default :
+				logger.error("AwayState has no valid state to retrieve, AwayState {}", structure.getAwayState());
 				return null;
 			}
 		default:
+			logger.error("Type has no valid state to retrieve, type {}", type);
 			return null;
 		}
 	}
