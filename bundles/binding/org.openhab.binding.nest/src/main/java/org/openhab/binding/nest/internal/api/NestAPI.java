@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.json.JSONObject;
+import org.openhab.binding.nest.internal.NestBinding;
 import org.openhab.binding.nest.internal.api.listeners.Listener;
 import org.openhab.binding.nest.internal.api.model.AccessToken;
 import org.openhab.binding.nest.internal.api.model.Keys;
@@ -21,9 +22,11 @@ import org.openhab.binding.nest.internal.api.model.Thermostat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.firebase.client.AuthData;
 import com.firebase.client.Config;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
+import com.firebase.client.Firebase.AuthResultHandler;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.GenericTypeIndicator;
 import com.firebase.client.Logger.Level;
@@ -32,7 +35,7 @@ import com.firebase.client.ValueEventListener;
 
 @SuppressWarnings("unused")
 public final class NestAPI implements ValueEventListener {
-	private static final Logger logger = LoggerFactory.getLogger(NestAPI.class);
+	private static final Logger logger = LoggerFactory.getLogger(NestBinding.class);
     private static final String TAG = NestAPI.class.getSimpleName();
     private static final int BUFFER_SIZE = 4096;
 
@@ -49,8 +52,7 @@ public final class NestAPI implements ValueEventListener {
         void onComplete();
         void onError(int errorCode);
     }
-
-
+    
     private final List<WeakReference<Listener>> mListeners;
     private Firebase mFirebaseRef;
 
@@ -60,12 +62,13 @@ public final class NestAPI implements ValueEventListener {
     public NestAPI(String clientId, String clientSecret) {
     	this.clientId = clientId;
     	this.clientSecret = clientSecret;
+        mListeners = new ArrayList<WeakReference<Listener>>();
         Firebase.goOffline();
         Firebase.goOnline();
         Config defaultConfig = Firebase.getDefaultConfig();
-//        defaultConfig.setLogLevel(Level.ERROR);
+        defaultConfig.setLogLevel(Level.DEBUG);
         mFirebaseRef = new Firebase(APIUrls.NEST_FIREBASE_URL);
-        mListeners = new ArrayList<WeakReference<Listener>>();
+        mFirebaseRef.addValueEventListener(this);
     }
 
     /**
@@ -73,16 +76,19 @@ public final class NestAPI implements ValueEventListener {
      * @param token the token to authenticate with
      * @param listener a listener to be notified when authentication succeeds or fails
      */
-    public void authenticate(AccessToken token, AuthenticationListener listener) {
-        logger.info(TAG, "authenticating with token: " + token.getToken());
-        mFirebaseRef.auth(token.getToken(), new NestFirebaseAuthListener(listener));
+    public void authenticate(AccessToken token, AuthResultHandler listener) {
+        logger.info("authenticating with token: " + token.getToken());
+        mFirebaseRef.authWithCustomToken(token.getToken(), listener);
     }
 
-    public void authenticate(String code, AuthenticationListener listener) {
+    public void authenticate(String code, AuthResultHandler listener) {
     	AccessToken token = getAccessToken(code);
+//        mFirebaseRef.addValueEventListener(this);
+
     	if(token != null){
-    		logger.info(TAG, "authenticating with token: " + token.getToken());
-    		mFirebaseRef.auth(token.getToken(), new NestFirebaseAuthListener(listener));
+    		logger.info("authenticating with token: " + token.getToken());
+//    		mFirebaseRef.auth(token.getToken(), new NestFirebaseAuthListener(listener));
+    		mFirebaseRef.authWithCustomToken(token.getToken(), listener);
     	}
     	else{
     		logger.warn("Warning couldn't log in with code provided[{}]", code);
@@ -227,7 +233,6 @@ public final class NestAPI implements ValueEventListener {
      * @param listener the listener to receive changes
      */
     public void addUpdateListener(Listener listener) {
-        mFirebaseRef.addValueEventListener(this);
         mListeners.add(new WeakReference<Listener>(listener));
     }
 
@@ -407,39 +412,6 @@ public final class NestAPI implements ValueEventListener {
         }
     }
 
-    private class NestFirebaseAuthListener implements Firebase.AuthListener {
-        private AuthenticationListener mListener;
-
-        public NestFirebaseAuthListener (AuthenticationListener listener) {
-            mListener = listener;
-        }
-
-        @Override
-        public void onAuthError(FirebaseError firebaseError) {
-            if (firebaseError != null) {
-            	logger.warn(TAG, "Error during authentication: " + firebaseError.toString());
-            }
-
-            if (mListener != null) {
-                final int errorCode = firebaseError == null ? 0 : firebaseError.getCode();
-                mListener.onAuthenticationFailure(errorCode);
-            }
-        }
-
-        @Override
-        public void onAuthSuccess(Object o) {
-        	logger.info(TAG, "auth success: " + String.valueOf(o));
-            if (mListener != null) {
-                mListener.onAuthenticationSuccess();
-            }
-        }
-
-        @Override
-        public void onAuthRevoked(FirebaseError firebaseError) {
-            onAuthError(firebaseError);
-        }
-    }
-
     private static class PathBuilder {
         private StringBuilder mBuilder;
 
@@ -462,6 +434,6 @@ public final class NestAPI implements ValueEventListener {
 		return String.format(APIUrls.CLIENT_CODE_URL, clientId, "STATE");
 	}
 
-    // Marker for Firebase to retrieve a strongly-typed collection
+   // Marker for Firebase to retrieve a strongly-typed collection
 //    private static class StringObjectMapIndicator extends GenericTypeIndicator<T> {}
 }

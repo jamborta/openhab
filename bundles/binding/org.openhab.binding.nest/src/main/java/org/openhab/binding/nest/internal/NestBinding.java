@@ -42,6 +42,10 @@ import org.openhab.core.types.Type;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.firebase.client.AuthData;
+import com.firebase.client.Firebase.AuthResultHandler;
+import com.firebase.client.FirebaseError;
 	
 
 /**
@@ -51,7 +55,7 @@ import org.slf4j.LoggerFactory;
  * @author Neil Renaud
  * @since 1.7.0
  */
-public class NestBinding extends AbstractActiveBinding<NestBindingProvider> implements BindingChangeListener, AuthenticationListener, SmokeCOAlarmListener, ThermostatListener, StructureListener {
+public class NestBinding extends AbstractActiveBinding<NestBindingProvider> implements BindingChangeListener, AuthenticationListener, SmokeCOAlarmListener, ThermostatListener, StructureListener, AuthResultHandler {
 
 
 	private static final Logger logger = 
@@ -105,12 +109,12 @@ public class NestBinding extends AbstractActiveBinding<NestBindingProvider> impl
 		logger.info("Then set the code state in Openhab");
 		logger.info("Something like: http://localhost:8080/CMD?Nest_Code=<code>");
 		logger.info("Where \"NestCode\" is the name of the Nest code type in your item file");
+		this.nestApi = new NestAPI(clientId, clientSecret);
 
 		setProperlyConfigured(true);
 	}
 	
 	private void connectToNestApi(String code){
-		this.nestApi = new NestAPI(clientId, clientSecret);
 		Listener.Builder builder = new Listener.Builder();
 		builder.setSmokeCOAlarmListener(this);
 		builder.setStructureListener(this);
@@ -219,11 +223,11 @@ public class NestBinding extends AbstractActiveBinding<NestBindingProvider> impl
 		for(NestBindingProvider provider : providers){
 			String id = provider.getIdForItemName(itemName);
 			NestType nestType = provider.getTypeForItemName(itemName);
-			if(id != null && nestType != null){
+			if(NestType.NEST_CODE.equals(nestType)){
+				connectToNestApi(((StringType) newType).toString());
+			}
+			else if(id != null && nestType != null){
 				switch (nestType) {
-				case NEST_CODE:
-					connectToNestApi(((StringType) newType).toString());
-					break;
 				case HOUSE_AWAY_STATE:
 					AwayState awayState = newType.equals(OnOffType.ON) ? AwayState.HOME : AwayState.AWAY;
 					nestApi.setStructureAway(id, awayState, new CompletionL("Away State: " + awayState));
@@ -492,6 +496,19 @@ public class NestBinding extends AbstractActiveBinding<NestBindingProvider> impl
 	@Override
 	public void onAuthenticationFailure(int errorCode) {
 		logger.error("Nest authentication unsuccessful, errorcode[{}]", errorCode);
+	}
+
+
+	@Override
+	public void onAuthenticated(AuthData arg0) {
+		logger.info("Nest authentication successful: {}", arg0);
+	}
+
+
+	@Override
+	public void onAuthenticationError(FirebaseError arg0) {
+		logger.error("Nest authentication unsuccessful, errorcode[{}] {} {} {}", arg0.getCode(), arg0.getMessage(), arg0.getDetails(), arg0);
+		
 	}
 
 }
