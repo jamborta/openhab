@@ -463,4 +463,40 @@ public final class Thermostat extends BaseDevice {
             return UNKNOWN;
         }
     }
+    
+    @Override
+    public String toString() {
+        return "Thermostat{" +
+                "ID='" + getDeviceID() + '\'' +
+                ", Locale='" + getLocale() + '\'' +
+                ",SoftwareVersion='" + getSoftwareVersion() + '\'' +
+                ",StructureId='" + getStructureID() + '\'' +
+                ",Name='" + getName() + '\'' +
+                ",NameLong='" + getNameLong() + '\'' +
+                ",LastConnected='" + getLastConnection() + '\'' +
+                ",isOnline='" + isOnline() + '\'' +
+                ",canCool='" + canCool() + '\'' +
+                ",canHeat='" + canHeat() + '\'' +
+                ",isUsingEmergencyHeat='" + isUsingEmergencyHeat() + '\'' +
+                ",hasFan='" + hasFan() + '\'' +
+                ",FanTimerTimeout='" + getFanTimerTimeout() + '\'' +
+                ",hasLeaf='" + hasLeaf() + '\'' +
+                ",TemperatureScale='" + getTemperatureScale() + '\'' +
+                ",AwayTemperatureHighC='" + getAwayTemperatureHighC() + '\'' +
+                ",AwayTemperatureLowC='" + getAwayTemperatureLowC() + '\'' +
+                ",AwayTemperatureHighF='" + getAwayTemperatureHighF() + '\'' +
+                ",AwayTemperatureLowF='" + getAwayTemperatureLowF() + '\'' +
+                ",AmbientTemperatureC='" + getAmbientTemperatureC() + '\'' +
+                ",AmbientTemperatureF='" + getAmbientTemperatureF() + '\'' +
+                ",isFanTimerActive='" + isFanTimerActive() + '\'' +
+                ",TargetTemperatureC='" + getTargetTemperatureC() + '\'' +
+                ",TargetTemperatureF='" + getTargetTemperatureF() + '\'' +
+                ",TargetTemperatureHighC='" + getTargetTemperatureHighC() + '\'' +
+                ",TargetTemperatureLowC='" + getTargetTemperatureLowC() + '\'' +
+                ",TargetTemperatureHighF='" + getTargetTemperatureHighF() + '\'' +
+                ",TargetTemperatureLowF='" + getTargetTemperatureLowF() + '\'' +
+                ",HVACmode='" + getHVACmode() + '\'' +
+                '}';
+    }
+    
 }

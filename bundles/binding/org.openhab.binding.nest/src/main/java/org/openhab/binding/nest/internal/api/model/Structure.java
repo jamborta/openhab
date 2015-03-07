@@ -23,8 +23,6 @@ import java.util.TimeZone;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.openhab.binding.nest.internal.api.model.Keys.ETA;
-import org.openhab.binding.nest.internal.api.model.Keys.STRUCTURE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -110,4 +110,23 @@ public final class SmokeCOAlarm extends BaseDevice {
     public String getLastManualTestTime(){
     	return mLastManualTestTime;
     }
+    
+    @Override
+    public String toString() {
+        return "Protect{" +
+                "ID='" + getDeviceID() + '\'' +
+                ", Locale='" + getLocale() + '\'' +
+                ",SoftwareVersion='" + getSoftwareVersion() + '\'' +
+                ",StructureId='" + getStructureID() + '\'' +
+                ",Name='" + getName() + '\'' +
+                ",NameLong='" + getNameLong() + '\'' +
+                ",LastConnected='" + getLastConnection() + '\'' +
+                ",isOnline='" + isOnline() + '\'' +
+                ",BatteryHealth='" + getBatteryHealth() + '\'' +
+                ",COAlarmState='" + getCOAlarmState() + '\'' +
+                ",SmokeAlarmState='" + getSmokeAlarmState() + '\'' +
+                ",UIColorState='" + getUIColorState() + '\'' +
+                ",LastManualTestTime='" + getLastManualTestTime() + '\'' +
+                '}';
+    }
 }

@@ -18,18 +18,17 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.openhab.binding.nest.NestBindingProvider;
 import org.openhab.binding.nest.internal.api.NestAPI;
-import org.openhab.binding.nest.internal.api.NestAPI.AuthenticationListener;
-import org.openhab.binding.nest.internal.api.NestAPI.CompletionListener;
-import org.openhab.binding.nest.internal.api.listeners.Listener;
-import org.openhab.binding.nest.internal.api.listeners.Listener.SmokeCOAlarmListener;
-import org.openhab.binding.nest.internal.api.listeners.Listener.StructureListener;
-import org.openhab.binding.nest.internal.api.listeners.Listener.ThermostatListener;
+import org.openhab.binding.nest.internal.api.listeners.AuthenticationListener;
+import org.openhab.binding.nest.internal.api.listeners.CompletionListener;
+import org.openhab.binding.nest.internal.api.listeners.SmokeCOAlarmListener;
+import org.openhab.binding.nest.internal.api.listeners.StructureListener;
+import org.openhab.binding.nest.internal.api.listeners.ThermostatListener;
 import org.openhab.binding.nest.internal.api.model.SmokeCOAlarm;
 import org.openhab.binding.nest.internal.api.model.Structure;
 import org.openhab.binding.nest.internal.api.model.Structure.AwayState;
 import org.openhab.binding.nest.internal.api.model.Structure.ETA;
 import org.openhab.binding.nest.internal.api.model.Thermostat;
-import org.openhab.core.binding.AbstractActiveBinding;
+import org.openhab.core.binding.AbstractBinding;
 import org.openhab.core.binding.BindingChangeListener;
 import org.openhab.core.binding.BindingProvider;
 import org.openhab.core.library.types.DateTimeType;
@@ -55,32 +54,16 @@ import com.firebase.client.FirebaseError;
  * @author Neil Renaud
  * @since 1.7.0
  */
-public class NestBinding extends AbstractActiveBinding<NestBindingProvider> implements BindingChangeListener, AuthenticationListener, SmokeCOAlarmListener, ThermostatListener, StructureListener, AuthResultHandler {
+public class NestBinding extends AbstractBinding<NestBindingProvider> implements BindingChangeListener, AuthenticationListener, SmokeCOAlarmListener, ThermostatListener, StructureListener, AuthResultHandler {
 
 
-	private static final Logger logger = 
-		LoggerFactory.getLogger(NestBinding.class);
+	private static final Logger logger = LoggerFactory.getLogger(NestBinding.class);
 	private final SimpleDateFormat NEST_DATE_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:sssz");
 	private String nestAuthUrl = "";
 	private NestAPI nestApi;
 	private String clientId;
 	private String clientSecret;	
 
-	/**
-	 * The BundleContext. This is only valid when the bundle is ACTIVE. It is set in the activate()
-	 * method and must not be accessed anymore once the deactivate() method was called or before activate()
-	 * was called.
-	 */
-	private BundleContext bundleContext;
-
-	
-	/** 
-	 * the refresh interval which is used to poll values from the Nest
-	 * server (optional, defaults to 60000ms)
-	 */
-	private long refreshInterval = 60000;
-	
-	
 	public NestBinding() {
 	}
 		
@@ -92,7 +75,6 @@ public class NestBinding extends AbstractActiveBinding<NestBindingProvider> impl
 	 * @param configuration Configuration properties for this component obtained from the ConfigAdmin service
 	 */
 	public void activate(final BundleContext bundleContext, final Map<String, Object> configuration) {
-		this.bundleContext = bundleContext;
 
 		String clientIdString = (String) configuration.get("clientid");
 		if (StringUtils.isNotBlank(clientIdString)) {
@@ -110,23 +92,18 @@ public class NestBinding extends AbstractActiveBinding<NestBindingProvider> impl
 		logger.info("Something like: http://localhost:8080/CMD?Nest_Code=<code>");
 		logger.info("Where \"NestCode\" is the name of the Nest code type in your item file");
 		this.nestApi = new NestAPI(clientId, clientSecret);
-
-		setProperlyConfigured(true);
 	}
 	
 	private void connectToNestApi(String code){
-		Listener.Builder builder = new Listener.Builder();
-		builder.setSmokeCOAlarmListener(this);
-		builder.setStructureListener(this);
-		builder.setThermostatListener(this);
-		this.nestApi.addUpdateListener(builder.build());
+		nestApi.addThermostatListener(this);
+		nestApi.addProtectListener(this);
+		nestApi.addHouseListener(this);
 		nestApi.authenticate(code, this);
 
 	}
 	
 	@Override
 	public void allBindingsChanged(BindingProvider provider) {
-		// TODO Auto-generated method stub
 		super.allBindingsChanged(provider);
 	}
 	
@@ -163,37 +140,40 @@ public class NestBinding extends AbstractActiveBinding<NestBindingProvider> impl
      * </ul>
 	 */
 	public void deactivate(final int reason) {
-		this.bundleContext = null;
+		nestApi.removeThermostatListener(this);
+		nestApi.removeProtectListener(this);
+		nestApi.removeHouseListener(this);
+		nestApi.disconnect();
 		nestApi = null;
 		// deallocate resources here that are no longer needed and 
 		// should be reset when activating this binding again
 	}
 
 	
-	/**
-	 * @{inheritDoc}
-	 */
-	@Override
-	protected long getRefreshInterval() {
-		return refreshInterval;
-	}
-
-	/**
-	 * @{inheritDoc}
-	 */
-	@Override
-	protected String getName() {
-		return "Nest Refresh Service";
-	}
-	
-	/**
-	 * @{inheritDoc}
-	 */
-	@Override
-	protected void execute() {
-		// the frequently executed code (polling) goes here ...
-		logger.debug("execute() method is called!");
-	}
+//	/**
+//	 * @{inheritDoc}
+//	 */
+//	@Override
+//	protected long getRefreshInterval() {
+//		return refreshInterval;
+//	}
+//
+//	/**
+//	 * @{inheritDoc}
+//	 */
+//	@Override
+//	protected String getName() {
+//		return "Nest Refresh Service";
+//	}
+//	
+//	/**
+//	 * @{inheritDoc}
+//	 */
+//	@Override
+//	protected void execute() {
+//		// the frequently executed code (polling) goes here ...
+//		logger.debug("execute() method is called!");
+//	}
 
 	/**
 	 * @{inheritDoc}
@@ -230,7 +210,7 @@ public class NestBinding extends AbstractActiveBinding<NestBindingProvider> impl
 				switch (nestType) {
 				case HOUSE_AWAY_STATE:
 					AwayState awayState = newType.equals(OnOffType.ON) ? AwayState.HOME : AwayState.AWAY;
-					nestApi.setStructureAway(id, awayState, new CompletionL("Away State: " + awayState));
+					nestApi.setStructureAway(id, awayState, new RequestCompletionListener("Away State: " + awayState));
 					break;
 				case HOUSE_ETA_EARLIEST:
 				case HOUSE_ETA_LATEST:
@@ -238,27 +218,27 @@ public class NestBinding extends AbstractActiveBinding<NestBindingProvider> impl
 					break;
 				case THERMOSTAT_TARGET_TEMP:
 					long targetTemp = ((DecimalType) newType).longValue();
-					nestApi.setTargetTemperatureC(id, targetTemp, new CompletionL("Setting Temp as" + targetTemp + " on " + id));
+					nestApi.setTargetTemperatureC(id, targetTemp, new RequestCompletionListener("Setting Temp as" + targetTemp + " on " + id));
 					break;
 				case THERMOSTAT_TARGET_TEMP_F:
 					long targetTempF = ((DecimalType) newType).longValue();
-					nestApi.setTargetTemperatureF(id, targetTempF, new CompletionL("Setting Temp F as" + targetTempF + " on " + id));
+					nestApi.setTargetTemperatureF(id, targetTempF, new RequestCompletionListener("Setting Temp F as" + targetTempF + " on " + id));
 					break;
 				case THERMOSTAT_TARGET_HIGH_TEMP:
 					long targetTempHigh = ((DecimalType) newType).longValue();
-					nestApi.setTargetTemperatureHighC(id, targetTempHigh, new CompletionL("Setting High C as" + targetTempHigh + " on " + id));
+					nestApi.setTargetTemperatureHighC(id, targetTempHigh, new RequestCompletionListener("Setting High C as" + targetTempHigh + " on " + id));
 					break;
 				case THERMOSTAT_TARGET_HIGH_TEMP_F:
 					long targetTempHighF = ((DecimalType) newType).longValue();
-					nestApi.setTargetTemperatureHighF(id, targetTempHighF, new CompletionL("Setting High F as" + targetTempHighF + " on " + id));
+					nestApi.setTargetTemperatureHighF(id, targetTempHighF, new RequestCompletionListener("Setting High F as" + targetTempHighF + " on " + id));
 					break;
 				case THERMOSTAT_TARGET_LOW_TEMP:
 					long targetTempLow = ((DecimalType) newType).longValue();
-					nestApi.setTargetTemperatureLowC(id, targetTempLow, new CompletionL("Setting Low C as" + targetTempLow + " on " + id));
+					nestApi.setTargetTemperatureLowC(id, targetTempLow, new RequestCompletionListener("Setting Low C as" + targetTempLow + " on " + id));
 					break;
 				case THERMOSTAT_TARGET_LOW_TEMP_F:
 					long targetTempLowF = ((DecimalType) newType).longValue();
-					nestApi.setTargetTemperatureLowF(id, targetTempLowF, new CompletionL("Setting Low F as" + targetTempLowF + " on " + id));
+					nestApi.setTargetTemperatureLowF(id, targetTempLowF, new RequestCompletionListener("Setting Low F as" + targetTempLowF + " on " + id));
 					break;
 				default:
 					logger.error("Attempting to set read only itemName[{}] to [{}]", itemName, newType);
@@ -270,7 +250,7 @@ public class NestBinding extends AbstractActiveBinding<NestBindingProvider> impl
 	
 	@Override
 	public void onStructureUpdated(Structure structure) {
-		logger.debug("Structure update received {}", structure);
+		logger.debug("House update received {}", structure);
 		boolean published = false;
 		for(NestBindingProvider provider : providers){
 			List<String> itemNames = provider.getItemNameFromNestId(structure.getStructureID());
@@ -468,9 +448,9 @@ public class NestBinding extends AbstractActiveBinding<NestBindingProvider> impl
 		
 	}
 
-	private class CompletionL implements CompletionListener {
+	private class RequestCompletionListener implements CompletionListener {
 		private final String message;
-		public CompletionL(String message) {
+		public RequestCompletionListener(String message) {
 			this.message = message;
 		}
 

@@ -4,16 +4,18 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.json.JSONObject;
 import org.openhab.binding.nest.internal.NestBinding;
-import org.openhab.binding.nest.internal.api.listeners.Listener;
+import org.openhab.binding.nest.internal.api.listeners.CompletionListener;
+import org.openhab.binding.nest.internal.api.listeners.SmokeCOAlarmListener;
+import org.openhab.binding.nest.internal.api.listeners.StructureListener;
+import org.openhab.binding.nest.internal.api.listeners.ThermostatListener;
 import org.openhab.binding.nest.internal.api.model.AccessToken;
 import org.openhab.binding.nest.internal.api.model.Keys;
 import org.openhab.binding.nest.internal.api.model.SmokeCOAlarm;
@@ -22,7 +24,6 @@ import org.openhab.binding.nest.internal.api.model.Thermostat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.firebase.client.AuthData;
 import com.firebase.client.Config;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
@@ -33,7 +34,6 @@ import com.firebase.client.Logger.Level;
 import com.firebase.client.ValueEventListener;
 //import com.fasterxml.jackson.databind.ObjectMapper;
 
-@SuppressWarnings("unused")
 public final class NestAPI implements ValueEventListener {
 	private static final Logger logger = LoggerFactory.getLogger(NestBinding.class);
     private static final String TAG = NestAPI.class.getSimpleName();
@@ -41,32 +41,21 @@ public final class NestAPI implements ValueEventListener {
 
 //    private static final StringObjectMapIndicator MAP_INDICATOR = new StringObjectMapIndicator();
 //    private GenericTypeIndicator<Map<String, Object>> MAP_INDICATOR = new GenericTypeIndicator<Map<String, Object>>() {};
-    
-    
-    public interface AuthenticationListener {
-        void onAuthenticationSuccess();
-        void onAuthenticationFailure(int errorCode);
-    }
-
-    public interface CompletionListener {
-        void onComplete();
-        void onError(int errorCode);
-    }
-    
-    private final List<WeakReference<Listener>> mListeners;
-    private Firebase mFirebaseRef;
+    private final List<SmokeCOAlarmListener> protectListeners = new CopyOnWriteArrayList<SmokeCOAlarmListener>();
+    private final List<ThermostatListener> thermostatListeners = new CopyOnWriteArrayList<ThermostatListener>();
+    private final List<StructureListener> houseListeners = new CopyOnWriteArrayList<StructureListener>();
+    private final Firebase mFirebaseRef;
 
     private final String clientId;
     private final String clientSecret;
-
+    
     public NestAPI(String clientId, String clientSecret) {
     	this.clientId = clientId;
     	this.clientSecret = clientSecret;
-        mListeners = new ArrayList<WeakReference<Listener>>();
         Firebase.goOffline();
         Firebase.goOnline();
         Config defaultConfig = Firebase.getDefaultConfig();
-        defaultConfig.setLogLevel(Level.DEBUG);
+        defaultConfig.setLogLevel(Level.ERROR);
         mFirebaseRef = new Firebase(APIUrls.NEST_FIREBASE_URL);
         mFirebaseRef.addValueEventListener(this);
     }
@@ -83,17 +72,20 @@ public final class NestAPI implements ValueEventListener {
 
     public void authenticate(String code, AuthResultHandler listener) {
     	AccessToken token = getAccessToken(code);
-//        mFirebaseRef.addValueEventListener(this);
 
     	if(token != null){
     		logger.info("authenticating with token: " + token.getToken());
-//    		mFirebaseRef.auth(token.getToken(), new NestFirebaseAuthListener(listener));
     		mFirebaseRef.authWithCustomToken(token.getToken(), listener);
     	}
     	else{
     		logger.warn("Warning couldn't log in with code provided[{}]", code);
     	}
     }
+    
+	public void disconnect() {
+		Firebase.goOffline();
+	}
+
     
     
     private AccessToken getAccessToken(String code){
@@ -232,33 +224,29 @@ public final class NestAPI implements ValueEventListener {
      * Add a listener to receive updates when data changes
      * @param listener the listener to receive changes
      */
-    public void addUpdateListener(Listener listener) {
-        mListeners.add(new WeakReference<Listener>(listener));
+    public void addThermostatListener(ThermostatListener thermostateListener){
+    	thermostatListeners.add(thermostateListener);
     }
 
-    /**
-     * Remove a previously registered update listener
-     * @param listener the listener to remove
-     * @return true if the listener was removed
-     */
-    public boolean removeUpdateListener(Listener listener) {
-        if (listener == null) {
-            return false;
-        }
-
-        for (int i = 0, count = mListeners.size(); i < count; i++) {
-            WeakReference<Listener> listenerRef = mListeners.get(i);
-            Listener l = listenerRef.get();
-            if (l == listener) {
-                mListeners.remove(i);
-                if (mListeners.isEmpty()) {
-                    mFirebaseRef.removeEventListener(this);
-                }
-                return true;
-            }
-        }
-        return false;
+    public void addProtectListener(SmokeCOAlarmListener protectListener){
+    	protectListeners.add(protectListener);
     }
+
+    public void addHouseListener(StructureListener houseListener){
+    	houseListeners.add(houseListener);
+    }
+    
+    public void removeThermostatListener(ThermostatListener thermostateListener){
+    	thermostatListeners.remove(thermostateListener);
+    }
+
+    public void removeProtectListener(SmokeCOAlarmListener protectListener){
+    	protectListeners.remove(protectListener);
+    }
+
+    public void removeHouseListener(StructureListener houseListener){
+    	houseListeners.remove(houseListener);
+    }    
 
     private void sendRequest(String path, Object value, CompletionListener listener) {
         mFirebaseRef.child(path).setValue(value, new NestCompletionListener(listener));
@@ -281,113 +269,56 @@ public final class NestAPI implements ValueEventListener {
 
     @Override
     public void onDataChange(DataSnapshot dataSnapshot) {
+    	logger.debug("Recieved Update from Nest: {}", dataSnapshot);
     	GenericTypeIndicator<Map<String, Object>> t = new GenericTypeIndicator<Map<String, Object>>() {};
     	final Map<String, Object> values = dataSnapshot.getValue(t);
 
         for (Map.Entry<String, Object> entry : values.entrySet()) {
-            notifyUpdateListeners(entry, mListeners);
+            notifyUpdateListeners(entry);
         }
     }
 
     @Override
     public void onCancelled(FirebaseError firebaseError) {
-        // Do nothing
+    	logger.debug("Recieved Cancel from Nest: {}", firebaseError);
     }
-
-    private static List<Listener> listenersFromReferences(List<WeakReference<Listener>> listenerRefs) {
-        final List<Listener> listeners = new ArrayList<Listener>();
-        for (int i = listenerRefs.size() - 1; i >= 0; i--) {
-            final WeakReference<Listener> listenerRef = listenerRefs.get(i);
-            final Listener listener = listenerRef.get();
-
-            if (listener != null) {
-                // Add any remaining references
-                listeners.add(listener);
-            } else {
-                // Clear out any obsolete references
-                listenerRefs.remove(i);
-            }
-        }
-        return listeners;
-    }
-
+    
     @SuppressWarnings("unchecked")
-    private static void notifyUpdateListeners(Map.Entry<String, Object> entry, List<WeakReference<Listener>> listenerRefs) {
-        final List<Listener> listeners = listenersFromReferences(listenerRefs);
-
-        if (listeners.isEmpty()) {
-            return;
-        }
-
+    private void notifyUpdateListeners(Map.Entry<String, Object> entry) {
         final Map<String, Object> value = (Map<String, Object>) entry.getValue();
         if(entry.getKey().equals(Keys.DEVICES)){
-                updateDevices(value, listeners);
+                updateDevices(value);
         }
         else if(entry.getKey().equals(Keys.STRUCTURES)){
-                updateStructures(value, listeners);
+                updateHouse(value);
         }
     }
-
+    
     @SuppressWarnings("unchecked")
-    private static void updateDevices(Map<String, Object> devices, List<Listener> listeners) {
-        for (Map.Entry<String, Object> entry : devices.entrySet()) {
-            final Map<String, Object> value = (Map<String, Object>) entry.getValue();
-            if(entry.getKey().equals(Keys.THERMOSTATS)){
-                    updateThermostats(value, listeners);
-            }
-            else if(entry.getKey().equals(Keys.SMOKE_CO_ALARMS)){
-                    updateSmokeCOAlarms(value, listeners);
-            }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static void updateThermostats(Map<String, Object> thermostatsMap, List<Listener> listeners) {
-        for (Map.Entry<String, Object> entry : thermostatsMap.entrySet()) {
-            final Map<String, Object> value = (Map<String, Object>) entry.getValue();
-            final Thermostat thermostat = new Thermostat.Builder().fromMap(value);
-
-            if (thermostat != null) {
-                for (Listener listener : listeners) {
-                    if (listener.getThermostatListener() != null) {
-                        listener.getThermostatListener().onThermostatUpdated(thermostat);
-                    }
-                }
-            }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static void updateSmokeCOAlarms(Map<String, Object> smokeCOAlarms, List<Listener> listeners) {
-        for (Map.Entry<String, Object> entry : smokeCOAlarms.entrySet()) {
-            final Map<String, Object> value = (Map<String, Object>) entry.getValue();
-            final SmokeCOAlarm alarm = new SmokeCOAlarm.Builder().fromMap(value);
-
-            if (alarm != null) {
-                for (Listener listener : listeners) {
-                    if (listener.getSmokeCOAlarmListener() != null) {
-                        listener.getSmokeCOAlarmListener().onSmokeCOAlarmUpdated(alarm);
-                    }
-                }
-            }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static void updateStructures(Map<String, Object> structures, List<Listener> listeners) {
+    private void updateHouse(Map<String, Object> structures) {
         for (Map.Entry<String, Object> entry : structures.entrySet()) {
             final Map<String, Object> value = (Map<String, Object>) entry.getValue();
             final Structure structure = new Structure.Builder().fromMap(value);
-
             if (structure != null) {
-                for (Listener listener : listeners) {
-                    if (listener.getStructureListener() != null) {
-                        listener.getStructureListener().onStructureUpdated(structure);
-                    }
+                for (StructureListener listener : houseListeners) {
+                        listener.onStructureUpdated(structure);
                 }
             }
         }
     }
+    
+    @SuppressWarnings("unchecked")
+    private void updateDevices(Map<String, Object> devices) {
+        for (Map.Entry<String, Object> entry : devices.entrySet()) {
+            final Map<String, Object> value = (Map<String, Object>) entry.getValue();
+            if(entry.getKey().equals(Keys.THERMOSTATS)){
+                    updateThermostats(value);
+            }
+            else if(entry.getKey().equals(Keys.SMOKE_CO_ALARMS)){
+                    updateSmokeCOAlarms(value);
+            }
+        }
+    }     
 
     private class NestCompletionListener implements Firebase.CompletionListener {
         private CompletionListener mCompletionListener;
@@ -403,14 +334,41 @@ public final class NestAPI implements ValueEventListener {
             }
 
             if (firebaseError == null) {
-            	logger.info(TAG, "Request successful");
+            	logger.info("Request successful");
                 mCompletionListener.onComplete();
             } else {
-            	logger.warn(TAG, "Error: " + firebaseError.getCode() + " " + firebaseError.getMessage());
+            	logger.warn("Error: {} {}", firebaseError.getCode(), firebaseError.getMessage());
                 mCompletionListener.onError(firebaseError.getCode());
             }
         }
     }
+    
+    @SuppressWarnings("unchecked")
+    private void updateThermostats(Map<String, Object> thermostatsMap) {
+        for (Map.Entry<String, Object> entry : thermostatsMap.entrySet()) {
+            final Map<String, Object> value = (Map<String, Object>) entry.getValue();
+            final Thermostat thermostat = new Thermostat.Builder().fromMap(value);
+            if (thermostat != null) {
+                for (ThermostatListener listener : thermostatListeners) {
+                    listener.onThermostatUpdated(thermostat);
+                }
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void updateSmokeCOAlarms(Map<String, Object> smokeCOAlarms ) {
+        for (Map.Entry<String, Object> entry : smokeCOAlarms.entrySet()) {
+            final Map<String, Object> value = (Map<String, Object>) entry.getValue();
+            final SmokeCOAlarm alarm = new SmokeCOAlarm.Builder().fromMap(value);
+
+            if (alarm != null) {
+                for (SmokeCOAlarmListener listener : protectListeners) {
+                    listener.onSmokeCOAlarmUpdated(alarm);
+                }
+            }
+        }
+    }    
 
     private static class PathBuilder {
         private StringBuilder mBuilder;
@@ -430,9 +388,12 @@ public final class NestAPI implements ValueEventListener {
     }
 
 	public static String getAuthUrl(String clientId) {
-//		https://home.nest.com/login/oauth2?client_id=204b41ce-edc4-4a1d-b38a-5910b8082a7b&state=STATE
 		return String.format(APIUrls.CLIENT_CODE_URL, clientId, "STATE");
 	}
+
+
+
+
 
    // Marker for Firebase to retrieve a strongly-typed collection
 //    private static class StringObjectMapIndicator extends GenericTypeIndicator<T> {}
