@@ -24,6 +24,7 @@ import org.openhab.binding.nest.internal.api.model.Thermostat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.firebase.client.Config;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
@@ -45,13 +46,17 @@ public final class NestAPI implements ValueEventListener {
     private final List<ThermostatListener> thermostatListeners = new CopyOnWriteArrayList<ThermostatListener>();
     private final List<StructureListener> houseListeners = new CopyOnWriteArrayList<StructureListener>();
     private final Firebase mFirebaseRef;
+    private final ObjectMapper mapper = new ObjectMapper(); // can reuse, share globally
+
 
     private final String clientId;
     private final String clientSecret;
+    private final String code;
     
-    public NestAPI(String clientId, String clientSecret) {
+    public NestAPI(String clientId, String clientSecret, String code) {
     	this.clientId = clientId;
     	this.clientSecret = clientSecret;
+    	this.code = code;
         Firebase.goOffline();
         Firebase.goOnline();
         Config defaultConfig = Firebase.getDefaultConfig();
@@ -61,33 +66,49 @@ public final class NestAPI implements ValueEventListener {
     }
 
     /**
-     * Request authentication with an AccessToken.
+     * Request authentication with a token.
      * @param token the token to authenticate with
      * @param listener a listener to be notified when authentication succeeds or fails
      */
-    public void authenticate(AccessToken token, AuthResultHandler listener) {
-        logger.info("authenticating with token: " + token.getToken());
-        mFirebaseRef.authWithCustomToken(token.getToken(), listener);
-    }
-
-    public void authenticate(String code, AuthResultHandler listener) {
-    	AccessToken token = getAccessToken(code);
-
+    public void authenticate(String token, AuthResultHandler listener) {
     	if(token != null){
-    		logger.info("authenticating with token: " + token.getToken());
-    		mFirebaseRef.authWithCustomToken(token.getToken(), listener);
+    		logger.info("authenticating with token: " + token);
+    		mFirebaseRef.authWithCustomToken(token, listener);
     	}
     	else{
-    		logger.warn("Warning couldn't log in with code provided[{}]", code);
+    		logger.warn("Warning couldn't log in with token provided[{}]", token);
     	}
     }
+    
     
 	public void disconnect() {
 		Firebase.goOffline();
 	}
 
     
-    
+
+    public AccessToken getAccessToken(){
+        try {
+            String formattedUrl = String.format(APIUrls.ACCESS_URL, clientId, code, clientSecret);
+            System.out.println("Getting auth from: " + formattedUrl);
+            URL url = new URL(formattedUrl);
+            System.out.println("Created url...");
+            HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+            System.out.println("Opened connection...");
+            conn.setRequestMethod("POST");
+
+            InputStream in = new BufferedInputStream(conn.getInputStream());
+            String result = readStream(in);
+            JSONObject object = new JSONObject(result);
+            AccessToken token = AccessToken.fromJSON(object);
+            return token;
+        } 
+        catch (IOException excep) {
+        	System.out.println(TAG +  " Unable to load access token. "+ excep);
+            return null;
+        }
+    }	
+	
     private AccessToken getAccessToken(String code){
         try {
         	
@@ -272,7 +293,6 @@ public final class NestAPI implements ValueEventListener {
     	logger.debug("Recieved Update from Nest: {}", dataSnapshot);
     	GenericTypeIndicator<Map<String, Object>> t = new GenericTypeIndicator<Map<String, Object>>() {};
     	final Map<String, Object> values = dataSnapshot.getValue(t);
-
         for (Map.Entry<String, Object> entry : values.entrySet()) {
             notifyUpdateListeners(entry);
         }
@@ -298,6 +318,7 @@ public final class NestAPI implements ValueEventListener {
     private void updateHouse(Map<String, Object> structures) {
         for (Map.Entry<String, Object> entry : structures.entrySet()) {
             final Map<String, Object> value = (Map<String, Object>) entry.getValue();
+//            final Structure structure = mapper.readValue(value, Structure.class);
             final Structure structure = new Structure.Builder().fromMap(value);
             if (structure != null) {
                 for (StructureListener listener : houseListeners) {

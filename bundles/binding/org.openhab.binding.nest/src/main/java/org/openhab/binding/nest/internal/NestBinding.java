@@ -14,6 +14,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.prefs.Preferences;
 
 import org.apache.commons.lang.StringUtils;
 import org.openhab.binding.nest.NestBindingProvider;
@@ -23,6 +24,7 @@ import org.openhab.binding.nest.internal.api.listeners.CompletionListener;
 import org.openhab.binding.nest.internal.api.listeners.SmokeCOAlarmListener;
 import org.openhab.binding.nest.internal.api.listeners.StructureListener;
 import org.openhab.binding.nest.internal.api.listeners.ThermostatListener;
+import org.openhab.binding.nest.internal.api.model.AccessToken;
 import org.openhab.binding.nest.internal.api.model.SmokeCOAlarm;
 import org.openhab.binding.nest.internal.api.model.Structure;
 import org.openhab.binding.nest.internal.api.model.Structure.AwayState;
@@ -56,18 +58,20 @@ import com.firebase.client.FirebaseError;
  */
 public class NestBinding extends AbstractBinding<NestBindingProvider> implements BindingChangeListener, AuthenticationListener, SmokeCOAlarmListener, ThermostatListener, StructureListener, AuthResultHandler {
 
-
+	private static final String ACCESS_TOKEN = "accessToken";
+	private static final String PIN_CODE = "pinCode";
+	
 	private static final Logger logger = LoggerFactory.getLogger(NestBinding.class);
 	private final SimpleDateFormat NEST_DATE_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:sssz");
 	private String nestAuthUrl = "";
 	private NestAPI nestApi;
 	private String clientId;
-	private String clientSecret;	
+	private String clientSecret;
+	private String pinCode;
 
 	public NestBinding() {
 	}
 		
-	
 	/**
 	 * Called by the SCR to activate the component with its configuration read from CAS
 	 * 
@@ -84,23 +88,76 @@ public class NestBinding extends AbstractBinding<NestBindingProvider> implements
 		if (StringUtils.isNotBlank(clientSecretString)) {
 			clientSecret = clientSecretString;
 		}
-		logger.info("Creating Nest API Binding for clientId[{}] clientSecret[{}]", clientId, clientSecret);
-		logger.info("Binding started but not connected waiting for code from Nest website");
+		
+		String pinCodeString = (String) configuration.get("pincode");
+		if (StringUtils.isNotBlank(pinCodeString)) {
+			pinCode = pinCodeString;
+		}
+		
+		logger.info("Creating Nest API Binding for clientId[{}] clientSecret[{}] PinCode[{}]", clientId, clientSecret, pinCodeString);
 		nestAuthUrl = NestAPI.getAuthUrl(clientId);
-		logger.info("To get a code go to URL: {}", nestAuthUrl);
-		logger.info("Then set the code state in Openhab");
-		logger.info("Something like: http://localhost:8080/CMD?Nest_Code=<code>");
-		logger.info("Where \"NestCode\" is the name of the Nest code type in your item file");
-		this.nestApi = new NestAPI(clientId, clientSecret);
+		logger.info("To get a pin code go to URL: {}", nestAuthUrl);
+		this.nestApi = new NestAPI(clientId, clientSecret, pinCode);
+		connectToNestApi();
 	}
+
 	
-	private void connectToNestApi(String code){
-		nestApi.addThermostatListener(this);
-		nestApi.addProtectListener(this);
-		nestApi.addHouseListener(this);
-		nestApi.authenticate(code, this);
+	
+	private void connectToNestApi(){
+		String accessToken = getAccessToken();
+		if(accessToken != null){
+			nestApi.addThermostatListener(this);
+			nestApi.addProtectListener(this);
+			nestApi.addHouseListener(this);
+			nestApi.authenticate(accessToken, this);
+		}
+		else{
+			logger.error("Error getting Access Token please check the logs");
+		}
+		
 
 	}
+	
+	private String getAccessToken(){
+		String accessToken = loadAccessToken();
+		if(accessToken == null){
+			AccessToken tokenObject = nestApi.getAccessToken();
+			if(tokenObject != null){
+				accessToken = tokenObject.getToken();
+				saveAccessToken(tokenObject.getToken());
+			}
+		}
+		return accessToken;
+	}
+	
+	private String loadAccessToken(){
+		Preferences prefs = getPrefsNode();
+		String pinCode = prefs.get(PIN_CODE, null);
+		if (this.pinCode.equals(pinCode)) {
+			String accessToken = prefs.get(ACCESS_TOKEN, null);
+			return accessToken;
+		}		
+		return null;
+		
+	}
+	
+	private void saveAccessToken(String accessToken){
+		Preferences prefs = getPrefsNode();
+		if (accessToken != null) {
+			prefs.put(ACCESS_TOKEN, accessToken);
+		} else {
+			prefs.remove(ACCESS_TOKEN);
+		}
+		if (pinCode != null) {
+			prefs.put(PIN_CODE, this.pinCode);
+		} else {
+			prefs.remove(PIN_CODE);
+		}		
+	}
+	
+	private Preferences getPrefsNode() {
+		return Preferences.userRoot().node("org.openhab.nest");
+	}	
 	
 	@Override
 	public void allBindingsChanged(BindingProvider provider) {
@@ -110,11 +167,6 @@ public class NestBinding extends AbstractBinding<NestBindingProvider> implements
 	@Override
 	public void bindingChanged(BindingProvider provider, String itemName) {
 		super.bindingChanged(provider, itemName);
-		NestBindingProvider nestProvider = (NestBindingProvider) provider;
-		NestType nestType = nestProvider.getTypeForItemName(itemName);
-		if(nestType != null && nestType.equals(NestType.NEST_AUTH_URL)){
-			eventPublisher.postUpdate(itemName, new StringType(nestAuthUrl));
-		}
 	}
 	
 	/**
@@ -150,31 +202,6 @@ public class NestBinding extends AbstractBinding<NestBindingProvider> implements
 	}
 
 	
-//	/**
-//	 * @{inheritDoc}
-//	 */
-//	@Override
-//	protected long getRefreshInterval() {
-//		return refreshInterval;
-//	}
-//
-//	/**
-//	 * @{inheritDoc}
-//	 */
-//	@Override
-//	protected String getName() {
-//		return "Nest Refresh Service";
-//	}
-//	
-//	/**
-//	 * @{inheritDoc}
-//	 */
-//	@Override
-//	protected void execute() {
-//		// the frequently executed code (polling) goes here ...
-//		logger.debug("execute() method is called!");
-//	}
-
 	/**
 	 * @{inheritDoc}
 	 */
@@ -203,10 +230,8 @@ public class NestBinding extends AbstractBinding<NestBindingProvider> implements
 		for(NestBindingProvider provider : providers){
 			String id = provider.getIdForItemName(itemName);
 			NestType nestType = provider.getTypeForItemName(itemName);
-			if(NestType.NEST_CODE.equals(nestType)){
-				connectToNestApi(((StringType) newType).toString());
-			}
-			else if(id != null && nestType != null){
+
+			if(id != null && nestType != null){
 				switch (nestType) {
 				case HOUSE_AWAY_STATE:
 					AwayState awayState = newType.equals(OnOffType.ON) ? AwayState.HOME : AwayState.AWAY;

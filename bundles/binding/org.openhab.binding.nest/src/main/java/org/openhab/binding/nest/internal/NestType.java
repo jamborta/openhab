@@ -2,9 +2,6 @@ package org.openhab.binding.nest.internal;
 
 public enum NestType {
 	
-	NEST_CODE,
-	NEST_AUTH_URL,
-
 	THERMOSTAT_CURRENT_TEMP,
 	THERMOSTAT_CURRENT_TEMP_F,
 	THERMOSTAT_CURRENT_HUMIDITY,
