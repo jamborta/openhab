@@ -52,6 +52,7 @@ public class Keys {
         public static final String HVAC_MODE = "hvac_mode";
         public static final String AMBIENT_TEMP_F = "ambient_temperature_f";
         public static final String AMBIENT_TEMP_C = "ambient_temperature_c";
+        public static final String HUMIDITY = "humidity";
     }
 
     public static class SMOKE_CO_ALARM {
