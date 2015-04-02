@@ -343,8 +343,7 @@ public class NestBinding extends AbstractBinding<NestBindingProvider> implements
 		case THERMOSTAT_TARGET_LOW_TEMP_F:
 			return new DecimalType(thermostat.getTargetTemperatureLowF());
 		case THERMOSTAT_CURRENT_HUMIDITY:
-			logger.error("Nest Type Not supported yet:" + type);
-			return DecimalType.ZERO;
+			return new PercentType(thermostat.getHumidity());
 		case THERMOSTAT_CURRENT_TEMP:
 			return new DecimalType(thermostat.getAmbientTemperatureC());
 		case THERMOSTAT_CURRENT_TEMP_F:
