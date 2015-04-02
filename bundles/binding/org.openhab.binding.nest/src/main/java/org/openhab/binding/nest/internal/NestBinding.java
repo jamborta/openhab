@@ -352,7 +352,7 @@ public class NestBinding extends AbstractBinding<NestBindingProvider> implements
 		case THERMOSTAT_LAST_UPDATED:
 			logger.warn("Nest type not fully supported yet, type: {}", type);
 //			return parseDate(thermostat.getLastConnection());
-			return new DateTimeType();
+			return new DateTimeType(thermostat.getLastConnection());
 		case THERMOSTAT_CAN_COOL:
 			return thermostat.canCool() ? OnOffType.ON : OnOffType.OFF;
 		case THERMOSTAT_CAN_HEAT:
@@ -388,11 +388,11 @@ public class NestBinding extends AbstractBinding<NestBindingProvider> implements
 		case PROTECT_LAST_CONNECTED:
 			logger.warn("Nest type not fully supported yet, type: {}", type);
 //			return parseDate(protect.getLastConnection());
-			return new DateTimeType();
+			return new DateTimeType(protect.getLastConnection());
 		case PROTECT_LAST_MANUAL_TEST:
 			logger.warn("Nest type not fully supported yet, type: {}", type);
 //			return parseDate(protect.getLastManualTestTime());
-			return new DateTimeType();
+			return new DateTimeType(protect.getLastManualTestTime());
 		case PROTECT_NAME:
 			return new StringType(protect.getName());
 		case PROTECT_LONG_NAME:
@@ -414,7 +414,7 @@ public class NestBinding extends AbstractBinding<NestBindingProvider> implements
 			if(etaEarliest != null){
 				logger.warn("Nest type not fully supported yet, type: {}", type);
 //				return parseDate(etaEarliest.getEstimatedArrivalWindowBegin());
-				return null;
+				return new DateTimeType(etaEarliest.getEstimatedArrivalWindowBegin());
 			}
 			return null;
 		case HOUSE_ETA_LATEST:
@@ -422,7 +422,7 @@ public class NestBinding extends AbstractBinding<NestBindingProvider> implements
 			if(etaLatest != null){
 				logger.warn("Nest type not fully supported yet, type: {}", type);
 //				return parseDate(etaLatest.getEstimatedArrivalWindowEnd());
-				return null;
+				return new DateTimeType(etaLatest.getEstimatedArrivalWindowEnd());
 			}
 			return null;
 		case HOUSE_NAME:
