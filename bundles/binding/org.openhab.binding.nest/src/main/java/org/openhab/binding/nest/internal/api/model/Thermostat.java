@@ -40,6 +40,7 @@ public final class Thermostat extends BaseDevice {
     private final long mTargetTemperatureLowF;
     private final double mTargetTemperatureLowC;
     private final HVACMode mHVACmode;
+    private final int mHumidity;
 
     private Thermostat(Builder builder) {
         super(builder);
@@ -112,6 +113,7 @@ public final class Thermostat extends BaseDevice {
             setTargetTemperatureLowF(json.optLong(Keys.THERMOSTAT.TARGET_TEMP_LOW_F));
             setTargetTemperatureLowC(json.optDouble(Keys.THERMOSTAT.TARGET_TEMP_LOW_C));
             setHVACmode(json.optString(Keys.THERMOSTAT.HVAC_MODE));
+            setHumidity(json.optInteger(Keys.THERMOSTAT.HUMIDITY))
             return build();
         }
 
@@ -224,6 +226,11 @@ public final class Thermostat extends BaseDevice {
             mAmbientTemperatureC = ambientTemperatureC;
             return this;
         }
+        
+        public Builder setHumidity(int humidityPercentage) {
+            mHumidity = humidityPercentage;
+            return this;
+        }        
 
         public Thermostat build() {
             return new Thermostat(this);
@@ -254,6 +261,7 @@ public final class Thermostat extends BaseDevice {
         json.put(Keys.THERMOSTAT.HVAC_MODE, mHVACmode.getKey());
         json.put(Keys.THERMOSTAT.AMBIENT_TEMP_F, mAmbientTemperatureF);
         json.put(Keys.THERMOSTAT.AMBIENT_TEMP_C, mAmbientTemperatureC);
+        json.put(Keys.THERMOSTAT.HUMIDITY, mHumidity);
     }
 
     /**
@@ -428,6 +436,13 @@ public final class Thermostat extends BaseDevice {
     public double getTargetTemperatureLowC() {
         return mTargetTemperatureLowC;
     }
+    
+    /** 
+     * Returns the humidity as a percentage 
+     */
+    public int getHumidity(){
+        return mHumidity;
+    }
 
     /**
      * Returns the current operating mode of the thermostat.
@@ -496,6 +511,7 @@ public final class Thermostat extends BaseDevice {
                 ",TargetTemperatureHighF='" + getTargetTemperatureHighF() + '\'' +
                 ",TargetTemperatureLowF='" + getTargetTemperatureLowF() + '\'' +
                 ",HVACmode='" + getHVACmode() + '\'' +
+                ",Humidity='" + getHumidity() + '\'' +
                 '}';
     }
     
