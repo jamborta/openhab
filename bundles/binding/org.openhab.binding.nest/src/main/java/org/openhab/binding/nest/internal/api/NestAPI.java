@@ -281,10 +281,14 @@ public final class NestAPI implements ValueEventListener {
     	houseListeners.remove(houseListener);
     }    
 
-    private void sendRequest(String path, Object value, CompletionListener listener) {
+    private void sendRequest(String path, Long value, CompletionListener listener) {
         mFirebaseRef.child(path).setValue(value, new NestCompletionListener(listener));
     }
-    
+
+    private void sendRequest(String path, String value, CompletionListener listener) {
+        mFirebaseRef.child(path).setValue(value, new NestCompletionListener(listener));
+    }
+
     private void sendRequest(String path, Map<String, Object> map, CompletionListener listener) {
         mFirebaseRef.child(path).setValue(map, new NestCompletionListener(listener));
     }
