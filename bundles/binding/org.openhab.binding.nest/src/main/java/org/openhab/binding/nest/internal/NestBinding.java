@@ -14,6 +14,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.prefs.Preferences;
 
 import org.apache.commons.lang.StringUtils;
@@ -238,8 +239,20 @@ public class NestBinding extends AbstractBinding<NestBindingProvider> implements
 					nestApi.setStructureAway(id, awayState, new RequestCompletionListener("Away State: " + awayState));
 					break;
 				case HOUSE_ETA_EARLIEST:
+					DateTimeType dateTimeEarliest = ((DateTimeType) newType);
+					Calendar calendarEarliset = dateTimeEarliest.getCalendar();
+					long startTimeUtcEarliest = calendarEarliset.getTimeInMillis();
+					calendarEarliset.add(Calendar.MINUTE, 10);
+					long endTimeUtcEarliest = calendarEarliset.getTimeInMillis();
+					sendEtaUpdate(id, startTimeUtcEarliest, endTimeUtcEarliest, calendarEarliset.getTimeZone());
+					break;
 				case HOUSE_ETA_LATEST:
-					logger.info("ETA Setting not implemented yet");
+					DateTimeType dateTimeLatest = ((DateTimeType) newType);
+					Calendar calendarLatest = dateTimeLatest.getCalendar();
+					long endTimeUtcLatest = calendarLatest.getTimeInMillis();
+					calendarLatest.add(Calendar.MINUTE, -10);
+					long startTimeUtcLatest = calendarLatest.getTimeInMillis();
+					sendEtaUpdate(id, startTimeUtcLatest, endTimeUtcLatest, calendarLatest.getTimeZone());
 					break;
 				case THERMOSTAT_TARGET_TEMP:
 					long targetTemp = ((DecimalType) newType).longValue();
@@ -271,6 +284,16 @@ public class NestBinding extends AbstractBinding<NestBindingProvider> implements
 				}
 			}
 		}
+	}
+	
+	private void sendEtaUpdate(String id, long arrivalWindowStartUtc, long arrivalWindowEndUtc, TimeZone timezone){
+		Structure.ETA eta = new Structure.ETA.Builder()
+		.setTripID("openhab")
+		.setEstimatedArrivalWindowBegin(arrivalWindowStartUtc, timezone)
+			.setEstimatedArrivalWindowBegin(arrivalWindowEndUtc, timezone)
+			.build();
+		nestApi.setEta(id, eta, new RequestCompletionListener("Setting ETA as " + eta + " on " + id));
+
 	}
 	
 	@Override

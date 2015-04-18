@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -240,6 +242,16 @@ public final class NestAPI implements ValueEventListener {
         final String path = buildStructureFieldPath(structureID, Keys.STRUCTURE.AWAY);
         sendRequest(path, awayType.getKey(), listener);
     }
+    
+    public void setEta(String structureID, Structure.ETA eta,CompletionListener listener) {
+        final String path = buildStructureFieldPath(structureID, Keys.STRUCTURE.ETA);
+        final Map<String, Object> parameterMap = new HashMap<String, Object>();
+        parameterMap.put(Keys.ETA.TRIP_ID, eta.getTripID());
+        parameterMap.put(Keys.ETA.ESTIMATED_ARRIVAL_WINDOW_BEGIN, eta.getEstimatedArrivalWindowBegin());
+        parameterMap.put(Keys.ETA.ESTIMATED_ARRIVAL_WINDOW_END, eta.getEstimatedArrivalWindowEnd());
+        sendRequest(path, parameterMap, listener);
+    }
+    
 
     /**
      * Add a listener to receive updates when data changes
@@ -272,7 +284,11 @@ public final class NestAPI implements ValueEventListener {
     private void sendRequest(String path, Object value, CompletionListener listener) {
         mFirebaseRef.child(path).setValue(value, new NestCompletionListener(listener));
     }
-
+    
+    private void sendRequest(String path, Map<String, Object> map, CompletionListener listener) {
+        mFirebaseRef.child(path).setValue(map, new NestCompletionListener(listener));
+    }
+    
     private String buildStructureFieldPath(String structureID, String fieldName) {
         return new PathBuilder()
                 .append(Keys.STRUCTURES)
