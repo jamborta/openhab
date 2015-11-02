@@ -54,7 +54,7 @@ public class LightwaveRfSetHeatingTemperatureCommand extends
 	@Override
 	public String getLightwaveRfCommandString() {
 		return getMessageString(messageId, roomId, deviceId, FUNCTION,
-				String.valueOf(setTemperature));
+				setTemperature);
 	}
 
 	@Override

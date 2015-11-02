@@ -18,10 +18,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.openhab.binding.lightwaverf.LightwaveRfBindingProvider;
-import org.openhab.binding.lightwaverf.internal.LightwaveRFSender;
-import org.openhab.binding.lightwaverf.internal.LightwaveRfBinding;
-import org.openhab.binding.lightwaverf.internal.LightwaveRfType;
-import org.openhab.binding.lightwaverf.internal.LightwaverfConvertor;
 import org.openhab.binding.lightwaverf.internal.command.LightwaveRFCommand;
 import org.openhab.binding.lightwaverf.internal.command.LightwaveRfHeatInfoRequest;
 import org.openhab.binding.lightwaverf.internal.command.LightwaveRfHeatingInfoResponse;
@@ -36,9 +32,9 @@ public class LightwaveRfBindingTest {
 
 	@Mock EventPublisher mockEventPublisher;
 	@Mock LightwaveRfBindingProvider mockBindingProvider; 
-	@Mock LightwaveRFSender mockLightwaveRfSender;
 	@Mock LightwaverfConvertor mockLightwaveRfConvertor;
 	@Mock LightwaveRFCommand mockLightwaveRfCommand;
+	@Mock LightwaveRfWifiLink mockWifiLink;
 	
 	@Mock LightwaveRfVersionMessage mockVersionMessage;
 	@Mock LightwaveRfHeatingInfoResponse mockHeatInfoResponse;
@@ -58,10 +54,10 @@ public class LightwaveRfBindingTest {
 		
 		LightwaveRfBinding binding = new LightwaveRfBinding();
 		binding.addBindingProvider(mockBindingProvider);
-		binding.setLightaveRfSender(mockLightwaveRfSender);
+		binding.setWifiLink(mockWifiLink);
 		binding.setLightwaveRfConvertor(mockLightwaveRfConvertor);
 		binding.internalReceiveCommand("MySwitch", OnOffType.ON);
-		verify(mockLightwaveRfSender).sendLightwaveCommand(mockLightwaveRfCommand);
+		verify(mockWifiLink).sendLightwaveCommand(mockLightwaveRfCommand);
 	}
 
 	@Test
@@ -73,10 +69,10 @@ public class LightwaveRfBindingTest {
 		
 		LightwaveRfBinding binding = new LightwaveRfBinding();
 		binding.addBindingProvider(mockBindingProvider);
-		binding.setLightaveRfSender(mockLightwaveRfSender);
+		binding.setWifiLink(mockWifiLink);
 		binding.setLightwaveRfConvertor(mockLightwaveRfConvertor);
 		binding.internalReceiveUpdate("MySwitch", OnOffType.ON);
-		verify(mockLightwaveRfSender).sendLightwaveCommand(mockLightwaveRfCommand);	
+		verify(mockWifiLink).sendLightwaveCommand(mockLightwaveRfCommand);	
 	}
 
 	
