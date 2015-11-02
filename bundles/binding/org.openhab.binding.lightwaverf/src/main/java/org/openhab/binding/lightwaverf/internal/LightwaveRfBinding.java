@@ -49,15 +49,13 @@ public class LightwaveRfBinding extends
 	private static int TIMEOUT_FOR_OK_MESSAGES_MS = 500;
 	// LightwaveRF WIFI hub port.
 	private static int LIGHTWAVE_PORT_TO_SEND_TO = 9760;
-	private static int LIGHTWAVE_PORT_TO_RECEIVE_ON = 9761;
+	private static int LIGHTWAVE_PORTS_TO_RECEIVE_ON = 9761;
 	// LightwaveRF WIFI hub IP Address or broadcast address
 	private static String LIGHTWAVE_IP = "255.255.255.255";
 	private static boolean SEND_REGISTER_ON_STARTUP = true;
 
 	private LightwaverfConvertor messageConvertor = new LightwaverfConvertor();
-	private LightwaveRFReceiver receiverOnSendPort = null;
-	private LightwaveRFReceiver receiverOnReceiverPort = null;
-	private LightwaveRFSender sender = null;
+	private LightwaveRfWifiLink wifiLink = null;
 	private LightwaveRfHeatPoller heatPoller = null;
 
 	public LightwaveRfBinding() {
@@ -75,16 +73,15 @@ public class LightwaveRfBinding extends
 	 */
 	public void activate(final BundleContext bundleContext,
 			final Map<String, Object> configuration) {
-		try {
 
 			String ipString = (String) configuration.get("ip");
 			if (StringUtils.isNotBlank(ipString)) {
 				LIGHTWAVE_IP = ipString;
 			}
 
-			String portOneString = (String) configuration.get("receiveport");
-			if (StringUtils.isNotBlank(portOneString)) {
-				LIGHTWAVE_PORT_TO_RECEIVE_ON = Integer.parseInt(portOneString);
+			String recieverPortsString = (String) configuration.get("receiveport");
+			if (StringUtils.isNotBlank(recieverPortsString)) {
+				LIGHTWAVE_PORTS_TO_RECEIVE_ON = Integer.parseInt(recieverPortsString);
 			}
 
 			String portTwoString = (String) configuration.get("sendport");
@@ -112,7 +109,7 @@ public class LightwaveRfBinding extends
 
 			logger.info("LightwaveBinding: IP[{}]", LIGHTWAVE_IP);
 			logger.info("LightwaveBinding: ReceivePort[{}]",
-					LIGHTWAVE_PORT_TO_RECEIVE_ON);
+					LIGHTWAVE_PORTS_TO_RECEIVE_ON);
 			logger.info("LightwaveBinding: Send Port[{}]",
 					LIGHTWAVE_PORT_TO_SEND_TO);
 			logger.info("LightwaveBinding: Register On Startup[{}]",
@@ -124,49 +121,40 @@ public class LightwaveRfBinding extends
 
 			messageConvertor = new LightwaverfConvertor();
 
-			// Create the Sender and Receiver
-			receiverOnReceiverPort = new LightwaveRFReceiver(messageConvertor,
-					LIGHTWAVE_PORT_TO_RECEIVE_ON);
-			receiverOnSendPort = new LightwaveRFReceiver(messageConvertor,
-					LIGHTWAVE_PORT_TO_SEND_TO);
-			sender = new LightwaveRFSender(LIGHTWAVE_IP,
-					LIGHTWAVE_PORT_TO_SEND_TO, TIME_BETWEEN_SENT_MESSAGES_MS,
+			try{
+				LightwaveRfWifiLink wifiLink = new LightwaveRfWifiLink(LIGHTWAVE_IP, 
+					LIGHTWAVE_PORT_TO_SEND_TO, 
+					LIGHTWAVE_PORTS_TO_RECEIVE_ON, 
+					messageConvertor, 
+					TIME_BETWEEN_SENT_MESSAGES_MS, 
 					TIMEOUT_FOR_OK_MESSAGES_MS);
+				wifiLink.addListener(this);
+				wifiLink.start();
 
-			// Add Listeners
-			receiverOnReceiverPort.addListener(this);
-			receiverOnSendPort.addListener(this);
-			receiverOnReceiverPort.addListener(sender);
-
-			// Start all the senders and receivers
-			receiverOnReceiverPort.start();
-			receiverOnSendPort.start();
-			sender.start();
-
-			if (SEND_REGISTER_ON_STARTUP) {
-				sender.sendLightwaveCommand(messageConvertor
+				if (SEND_REGISTER_ON_STARTUP) {
+					wifiLink.sendLightwaveCommand(messageConvertor
 						.getRegistrationCommand());
+				}
+
+				// Now the sender is started and we have sent the registration
+				// message
+				// start the Heat Poller
+				heatPoller = new LightwaveRfHeatPoller(wifiLink, messageConvertor);
+	
+				// Now register pollers if we have them. It might be that provider
+				// hasn't
+				// been setup yet and in that case they'll be registered by the
+				// bindingChanged method
+				for (LightwaveRfBindingProvider provider : providers) {
+					Collection<String> itemNames = provider.getItemNames();
+					registerHeatingPollers(provider, itemNames);
+				}
 			}
-
-			// Now the sender is started and we have sent the registration
-			// message
-			// start the Heat Poller
-			heatPoller = new LightwaveRfHeatPoller(sender, messageConvertor);
-
-			// Now register pollers if we have them. It might be that provider
-			// hasn't
-			// been setup yet and in that case they'll be registered by the
-			// bindingChanged method
-			for (LightwaveRfBindingProvider provider : providers) {
-				Collection<String> itemNames = provider.getItemNames();
-				registerHeatingPollers(provider, itemNames);
-			}
-
-		} catch (UnknownHostException e) {
-			logger.error("Error creating LightwaveRFSender", e);
-		} catch (SocketException e) {
-			logger.error("Error creating LightwaveRFSender/Receiver", e);
-		}
+			catch (UnknownHostException e) {
+				logger.error("Error creating LightwaveRFSender", e);
+			} catch (SocketException e) {
+				logger.error("Error creating LightwaveRFSender/Receiver", e);
+			}		
 	}
 
 	@Override
@@ -228,16 +216,13 @@ public class LightwaveRfBinding extends
 	public void deactivate(final int reason) {
 		// deallocate resources here that are no longer needed and
 		// should be reset when activating this binding again
+//TODO unregister listeners
+		
 		heatPoller.stop();
+		wifiLink.stop();
 
-		receiverOnReceiverPort.stop();
-		receiverOnSendPort.stop();
-		sender.stop();
-
-		receiverOnReceiverPort = null;
-		receiverOnSendPort = null;
-		sender = null;
 		heatPoller = null;
+		wifiLink = null;
 		messageConvertor = null;
 	}
 
@@ -268,7 +253,7 @@ public class LightwaveRfBinding extends
 		LightwaveRFCommand lightwaverfMessageString = messageConvertor
 				.convertToLightwaveRfMessage(roomId, deviceId, deviceType,
 						command);
-		sender.sendLightwaveCommand(lightwaverfMessageString);
+		wifiLink.sendLightwaveCommand(lightwaverfMessageString);
 
 	}
 
@@ -319,7 +304,7 @@ public class LightwaveRfBinding extends
 					eventPublisher.postUpdate(itemName, state);
 				} else {
 					logger.info("State was null for {} type {}, message {}",
-							itemName, deviceType, message);
+							new Object[] {itemName, deviceType, message});
 				}
 			}
 		}
@@ -373,16 +358,6 @@ public class LightwaveRfBinding extends
 					.getBindingItemsForType(LightwaveRfType.VERSION);
 			publishUpdate(itemNames, message, provider);
 		}
-	}
-
-	/**
-	 * Visible for testing only to allow us to add a mock of the Lightwave
-	 * Sender
-	 * 
-	 * @param mockLightwaveRfSender
-	 */
-	void setLightaveRfSender(LightwaveRFSender lightwaveRfSender) {
-		this.sender = lightwaveRfSender;
 	}
 
 	/**
