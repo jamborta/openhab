@@ -18,38 +18,32 @@ import org.openhab.binding.lightwaverf.internal.exception.LightwaveRfMessageExce
 import org.openhab.binding.lightwaverf.internal.message.LightwaveRfGeneralMessageId;
 import org.openhab.binding.lightwaverf.internal.message.LightwaveRfMessageId;
 import org.openhab.core.library.types.OnOffType;
-import org.openhab.core.library.types.PercentType;
 import org.openhab.core.types.State;
 
 /**
- * Represents LightwaveRf On/Off commands. On the LAN commands look like:
- * 100,!R2D3F0 (Off) 101,!R2D3F1 (On)
- * 
  * @author Neil Renaud
- * @since 1.7.0
+ * @since 1.8.0
  */
-public class LightwaveRfOnOffCommand extends AbstractLightwaveRfCommand
-		implements LightwaveRfRoomDeviceMessage {
+public class LightwaveRfAllOffCommand extends AbstractLightwaveRfCommand implements
+		LightwaveRfRoomMessage {
 
 	private static final Pattern REG_EXP = Pattern
-			.compile(".*(\\d{1,3}),!R(\\d)D(\\d)F([0,1]).*\\s*");
-	private static final String ON_FUNCTION = "1";
-	private static final String OFF_FUNCTION = "0";
-
+			.compile(".*([0-9]{1,3}),!R([0-9])Fa.*\\s*");
+	private static final String FUNCTION = "a";
+	
 	private final LightwaveRfMessageId messageId;
 	private final String roomId;
-	private final String deviceId;
-	private final boolean on;
 
-	public LightwaveRfOnOffCommand(int messageId, String roomId,
-			String deviceId, boolean on) {
-		this.messageId = new LightwaveRfGeneralMessageId(messageId);
+	/**
+	 * Commands are like: 100,!R2Fa 
+	 */
+
+	public LightwaveRfAllOffCommand(int messageId, String roomId) {
 		this.roomId = roomId;
-		this.deviceId = deviceId;
-		this.on = on;
+		this.messageId = new LightwaveRfGeneralMessageId(messageId);
 	}
 
-	public LightwaveRfOnOffCommand(String message)
+	public LightwaveRfAllOffCommand(String message)
 			throws LightwaveRfMessageException {
 		try {
 			Matcher matcher = REG_EXP.matcher(message);
@@ -57,28 +51,17 @@ public class LightwaveRfOnOffCommand extends AbstractLightwaveRfCommand
 			this.messageId = new LightwaveRfGeneralMessageId(
 					Integer.valueOf(matcher.group(1)));
 			this.roomId = matcher.group(2);
-			this.deviceId = matcher.group(3);
-			String function = matcher.group(4);
-			if (ON_FUNCTION.equals(function)) {
-				on = true;
-			} else if (OFF_FUNCTION.equals(function)) {
-				on = false;
-			} else {
-				throw new LightwaveRfMessageException(
-						"Received Message has invalid function[" + function
-								+ "]: " + message);
-			}
 		} catch (Exception e) {
-			throw new LightwaveRfMessageException("Error converting message: "
-					+ message, e);
+			throw new LightwaveRfMessageException(
+					"Error converting Dimming message: " + message, e);
 		}
 	}
 
 	@Override
 	public String getLightwaveRfCommandString() {
-		String function = on ? "1" : "0";
-		return getMessageString(messageId, roomId, deviceId, function);
+		return getMessageString(messageId, roomId, FUNCTION);
 	}
+
 
 	@Override
 	public String getRoomId() {
@@ -86,17 +69,10 @@ public class LightwaveRfOnOffCommand extends AbstractLightwaveRfCommand
 	}
 
 	@Override
-	public String getDeviceId() {
-		return deviceId;
-	}
-
-	@Override
 	public State getState(LightwaveRfType type) {
 		switch (type) {
-		case DIMMER:
-			return on ? PercentType.HUNDRED : OnOffType.OFF;
-		case SWITCH:
-			return on ? OnOffType.ON : OnOffType.OFF;
+		case ALL_OFF:
+			return OnOffType.OFF;
 		default:
 			return null;
 		}
@@ -109,31 +85,26 @@ public class LightwaveRfOnOffCommand extends AbstractLightwaveRfCommand
 
 	@Override
 	public boolean equals(Object that) {
-		if (that instanceof LightwaveRfOnOffCommand) {
+		if (that instanceof LightwaveRfAllOffCommand) {
 			return Objects.equals(this.messageId,
-					((LightwaveRfOnOffCommand) that).messageId)
+					((LightwaveRfAllOffCommand) that).messageId)
 					&& Objects.equals(this.roomId,
-							((LightwaveRfOnOffCommand) that).roomId)
-					&& Objects.equals(this.deviceId,
-							((LightwaveRfOnOffCommand) that).deviceId)
-					&& Objects.equals(this.on,
-							((LightwaveRfOnOffCommand) that).on);
+							((LightwaveRfAllOffCommand) that).roomId);
 		}
 		return false;
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(messageId, roomId, deviceId, on);
+		return Objects.hash(messageId, roomId);
 	}
 
 	@Override
 	public LightwaveRfMessageType getMessageType() {
-		return LightwaveRfMessageType.ROOM_DEVICE;
+		return LightwaveRfMessageType.ROOM;
 	}
 
 	public static boolean matches(String message) {
-		return message.contains("F0") || message.contains("F1");
+		return message.contains("Fa");
 	}
-
 }
