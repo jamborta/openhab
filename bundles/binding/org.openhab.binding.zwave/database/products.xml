@@ -147,7 +147,7 @@
 			</Reference>
 			<Model>RF9500</Model>
 			<Label lang="en">Battery Switch</Label>
-			<ConfigFile>cooper/rf9500.xml</ConfigFile>
+			<ConfigFile>cooper/9500.xml</ConfigFile>
 		</Product>
 		<Product>
 			<Reference>
@@ -683,23 +683,6 @@
 			<Model>506004</Model>
 			<Label lang="en">Transmitter Flush-Mounted 4-Gang Switch</Label>
 			<ConfigFile>merten/506004.xml</ConfigFile>
-		</Product>
-		<Product>
-			<Reference>
-				<Type>4004</Type>
-				<Id>0001</Id>
-			</Reference>
-			<Model>50x5xx</Model>
-			<Label lang="en">Window Blind Control Insert Button</Label>
-			<ConfigFile>merten/50x5xx.xml</ConfigFile>
-		</Product>
-		<Product>
-			<Reference>
-				<Type>8001</Type>
-				<Id>0001</Id>
-			</Reference>
-			<Model>50x5xx</Model>
-			<Label lang="en">Switch Plug</Label>
 		</Product>
 		<Product>
 			<Reference>
@@ -1469,10 +1452,6 @@
 			<Reference>
 				<Type>0400</Type>
 				<Id>100A</Id>
-			</Reference>
-			<Reference>
-				<Type>0400</Type>
-				<Id>300A</Id>
 			</Reference>
 			<Model>FGS211</Model>
 			<Label lang="en">Relay Switch 1x3kW</Label>
@@ -2417,15 +2396,6 @@
 		<Product>
 			<Reference>
 				<Type>2</Type>
-				<Id>52</Id>
-			</Reference>
-			<Model>ZMNHAD</Model>
-			<Label lang="en">Flush 1 relay</Label>
-			<ConfigFile>qubino/zmnhad.xml</ConfigFile>
-		</Product>
-		<Product>
-			<Reference>
-				<Type>2</Type>
 				<Id>1</Id>
 			</Reference>
 			<Model>ZMNHBA</Model>
@@ -2878,10 +2848,6 @@
 		<Name>EcoNet Controls</Name>
 		<Product>
 			<Reference>
-				<Type>0100</Type>
-				<Id>0100</Id>
-			</Reference>
-			<Reference>
 				<Type>0101</Type>
 				<Id>0101</Id>
 			</Reference>
@@ -2914,18 +2880,5 @@
 	    <Label lang="en">Strips-MaZw</Label>
 	    <ConfigFile>sensative/strips11-01-011.xml</ConfigFile>
 	  </Product>
-	</Manufacturer>
-	<Manufacturer>
-		<Id>0108</Id>
-		<Name>D-Link</Name>
-		<Product>
-			<Reference>
-				<Type>0002</Type>
-				<Id>000e</Id>
-			</Reference>
-			<Model>DCH-Z110</Model>
-			<Label lang="en">Remote Control</Label>
-			<ConfigFile>nodon/crc3100.xml</ConfigFile>
-		</Product>
 	</Manufacturer>
 </Manufacturers>

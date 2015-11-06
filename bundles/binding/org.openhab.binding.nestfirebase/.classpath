@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" output="target/classes" path="src/main/java"/>
+	<classpathentry excluding="**" kind="src" output="target/classes" path="src/main/resources"/>
+	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/firebase-client-jvm-1.1.1.jar"/>
+	<classpathentry kind="lib" path="lib/httpclient-4.0.1.jar"/>
+	<classpathentry kind="lib" path="lib/jackson-annotations-2.2.2.jar"/>
+	<classpathentry kind="lib" path="lib/jackson-core-2.2.2.jar"/>
+	<classpathentry kind="lib" path="lib/jackson-databind-2.2.2.jar"/>
+	<classpathentry kind="lib" path="lib/tubesock-0.0.11.jar"/>
+	<classpathentry kind="output" path="target/classes"/>
+</classpath>
