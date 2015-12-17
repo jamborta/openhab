@@ -20,14 +20,6 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.openhab.binding.lightwaverf.internal.command.LightwaveRFCommand;
-import org.openhab.binding.lightwaverf.internal.command.LightwaveRfCommandOk;
-import org.openhab.binding.lightwaverf.internal.command.LightwaveRfHeatInfoRequest;
-import org.openhab.binding.lightwaverf.internal.command.LightwaveRfRoomDeviceMessage;
-import org.openhab.binding.lightwaverf.internal.command.LightwaveRfRoomMessage;
-import org.openhab.binding.lightwaverf.internal.command.LightwaveRfSerialMessage;
-import org.openhab.binding.lightwaverf.internal.command.LightwaveRfVersionMessage;
-import org.openhab.binding.lightwaverf.internal.exception.LightwaveRfMessageException;
 import org.openhab.binding.lightwaverf.internal.message.LightwaveRfStringMessageListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -157,7 +149,12 @@ public class LightwaveRFReceiverThread implements Runnable {
 	 */
 	private void notifyMessage(String message){
 		for(LightwaveRfStringMessageListener messageListener : listeners){
-			messageListener.messageReceived(message);
+			try{
+				messageListener.messageReceived(message);
+			}
+			catch(Exception e){
+				logger.error("Unexpected error when notifying listeners of this message[" + message + "] message hasn't been processed", e);
+			}
 		}
 	}
 }
