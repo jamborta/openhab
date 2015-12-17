@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.regex.Pattern;
 
 import org.openhab.binding.lightwaverf.internal.LightwaveRfType;
+import org.openhab.binding.lightwaverf.internal.exception.LightwaveRfMessageException;
 import org.openhab.core.library.types.DateTimeType;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.PercentType;
@@ -82,7 +83,7 @@ public class LightwaveRfHeatingInfoResponse extends AbstractLightwaveRfJsonMessa
 	private final String nextSlot;
 	private final String prof;
 
-	public LightwaveRfHeatingInfoResponse(String message) {
+	public LightwaveRfHeatingInfoResponse(String message) throws LightwaveRfMessageException {
 		super(message);
 		mac = getStringFromText(MAC_ID_REG_EXP, message);
 		time = getDateFromText(TIME_ID_REG_EXP, message);

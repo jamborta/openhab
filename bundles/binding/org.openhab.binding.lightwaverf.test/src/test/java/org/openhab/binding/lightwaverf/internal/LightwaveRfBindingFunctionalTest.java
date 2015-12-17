@@ -190,7 +190,14 @@ public class LightwaveRfBindingFunctionalTest {
 	@Test
 	public void testAllOffCommandReceive() throws Exception {
 		testReceivingACommand(new SwitchItem("MyAllOff"), "room=2,type=ALL_OFF", "200,!R2Fa\n", OnOffType.OFF);
-	}	
+	}
+	
+	@Test
+	public void testUnknownCommand() throws Exception {
+		String message = "{\"trans\":213454,\"mac\":\"03:02:71\",\"cmd\":\"get_duskdawn\",\"lat\":51.52,\"long\":-0.08,\"offset\":0}";
+		testReceivingACommand(new LinkedList<ItemConfigAndExpectedState>(), message);
+		Thread.sleep(60000);
+	}
 	
 	private void testReceivingACommand(Item item, String itemConfig, String messageToReceive, State expectedState) throws Exception {
 		List<ItemConfigAndExpectedState> listOfItemsAndExpectedStates = new LinkedList<ItemConfigAndExpectedState>();

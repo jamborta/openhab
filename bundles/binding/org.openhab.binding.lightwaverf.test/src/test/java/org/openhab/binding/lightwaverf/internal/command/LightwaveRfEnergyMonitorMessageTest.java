@@ -16,7 +16,7 @@ public class LightwaveRfEnergyMonitorMessageTest {
 
 	
 	@Test
-	public void testDecodingMessage() {
+	public void testDecodingMessage() throws Exception {
 		LightwaveRfEnergyMonitorMessage message = new LightwaveRfEnergyMonitorMessage(messageString);
 		assertEquals(new LightwaveRfJsonMessageId(215955), message.getMessageId());
 		assertEquals("03:41:C4", message.getMac());
@@ -37,7 +37,7 @@ public class LightwaveRfEnergyMonitorMessageTest {
 	}
 	
 	@Test
-	public void testGetState() {
+	public void testGetState() throws Exception {
 		LightwaveRfEnergyMonitorMessage message = new LightwaveRfEnergyMonitorMessage(messageString);
 		assertEquals(new DecimalType(271), message.getState(LightwaveRfType.ENERGY_CURRENT_USAGE));
 		assertEquals(new DecimalType(2812), message.getState(LightwaveRfType.ENERGY_MAX_USAGE));

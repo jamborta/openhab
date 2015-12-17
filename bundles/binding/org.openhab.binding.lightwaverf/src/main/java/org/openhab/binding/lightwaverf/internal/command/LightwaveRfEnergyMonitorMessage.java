@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.regex.Pattern;
 
 import org.openhab.binding.lightwaverf.internal.LightwaveRfType;
+import org.openhab.binding.lightwaverf.internal.exception.LightwaveRfMessageException;
 import org.openhab.core.library.types.DateTimeType;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.types.State;
@@ -62,7 +63,7 @@ public class LightwaveRfEnergyMonitorMessage extends AbstractLightwaveRfJsonMess
 	private final int todUse;
 	private final int yesUse;
 	
-	public LightwaveRfEnergyMonitorMessage(String message) {
+	public LightwaveRfEnergyMonitorMessage(String message) throws LightwaveRfMessageException {
 		super(message);
 		mac = getStringFromText(MAC_ID_REG_EXP, message);
 		time = getDateFromText(TIME_ID_REG_EXP, message);

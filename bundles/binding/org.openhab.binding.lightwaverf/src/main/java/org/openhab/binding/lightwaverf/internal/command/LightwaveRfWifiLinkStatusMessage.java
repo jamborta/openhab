@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.regex.Pattern;
 
 import org.openhab.binding.lightwaverf.internal.LightwaveRfType;
+import org.openhab.binding.lightwaverf.internal.exception.LightwaveRfMessageException;
 import org.openhab.core.library.types.DateTimeType;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.StringType;
@@ -87,7 +88,7 @@ public class LightwaveRfWifiLinkStatusMessage extends AbstractLightwaveRfJsonMes
 	private final String ip;
 	private final String devs;
 	
-	public LightwaveRfWifiLinkStatusMessage(String message) {
+	public LightwaveRfWifiLinkStatusMessage(String message) throws LightwaveRfMessageException {
 		super(message);
 		mac = getStringFromText(MAC_ID_REG_EXP, message);
 		time = getDateFromText(TIME_ID_REG_EXP, message);
@@ -163,7 +164,7 @@ public class LightwaveRfWifiLinkStatusMessage extends AbstractLightwaveRfJsonMes
 	}
 	
 	public static boolean matches(String message) {
-		if (message.contains("lat") && message.contains("long")) {
+		if (message.contains("\"type\":\"hub\"") && message.contains("\"prod\":\"wfl\"") && message.contains("lat") && message.contains("long")) {
 			return true;
 		}
 		return false;

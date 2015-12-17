@@ -20,7 +20,7 @@ public class LightwaveRfWifiLinkStatusMessageTest {
 
 	
 	@Test
-	public void testDecodingMessage() {
+	public void testDecodingMessage() throws Exception {
 		LightwaveRfWifiLinkStatusMessage message = new LightwaveRfWifiLinkStatusMessage(messageString);
 		assertEquals(new LightwaveRfJsonMessageId(452), message.getMessageId());
 		assertEquals("ab:cd:ef", message.getMac());
@@ -50,7 +50,7 @@ public class LightwaveRfWifiLinkStatusMessageTest {
 	}
 	
 	@Test
-	public void testGetState() {
+	public void testGetState() throws Exception {
 		LightwaveRfWifiLinkStatusMessage message = new LightwaveRfWifiLinkStatusMessage(messageString);
 		Calendar dawnTime = Calendar.getInstance();
 		dawnTime.setTime(new Date(1447659083000L));
