@@ -32,10 +32,6 @@ import org.openhab.core.types.State;
  */
 public class LightwaveRfHeatingInfoResponse extends AbstractLightwaveRfJsonMessage implements LightwaveRfSerialMessage {
 
-	/*
-	 * Commands Like
-	 */
-
 	private static final Pattern MAC_ID_REG_EXP = Pattern
 			.compile(".*\"mac\":\"([^\"}]*)\".*");
 	private static final Pattern TIME_ID_REG_EXP = Pattern

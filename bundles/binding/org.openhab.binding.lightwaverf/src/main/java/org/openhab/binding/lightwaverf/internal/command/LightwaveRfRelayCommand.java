@@ -32,7 +32,7 @@ public class LightwaveRfRelayCommand extends AbstractLightwaveRfCommand
 		implements LightwaveRfRoomDeviceMessage {
 
 	private static final Pattern REG_EXP = Pattern
-			.compile("(\\d{1,3}),!R(\\d)D(\\d)F([\\^\\)\\(]).*\\s*");
+			.compile(".*(\\d{1,3}),!R(\\d)D(\\d)F([\\^\\)\\(]).*\\s*");
 	private static final String STOP_FUNCTION = "^";
 	private static final String OPEN_FUNCTION = ")";
 	private static final String CLOSE_FUNCTION = "(";

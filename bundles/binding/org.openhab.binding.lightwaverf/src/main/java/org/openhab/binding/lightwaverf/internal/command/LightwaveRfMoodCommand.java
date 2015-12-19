@@ -28,7 +28,7 @@ public class LightwaveRfMoodCommand extends AbstractLightwaveRfCommand implement
 		LightwaveRfRoomMessage {
 
 	private static final Pattern REG_EXP = Pattern
-			.compile("([0-9]{1,3}),!R([0-9])FmP([0-9]{1,2}).*\\s*");
+			.compile(".*([0-9]{1,3}),!R([0-9])FmP([0-9]{1,2}).*\\s*");
 	private static final String MOOD_FUNCTION = "m";
 	
 	private final LightwaveRfMessageId messageId;

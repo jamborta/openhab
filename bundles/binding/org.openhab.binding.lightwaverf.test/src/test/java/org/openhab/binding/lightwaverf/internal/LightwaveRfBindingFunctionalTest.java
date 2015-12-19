@@ -196,7 +196,18 @@ public class LightwaveRfBindingFunctionalTest {
 	public void testUnknownCommand() throws Exception {
 		String message = "{\"trans\":213454,\"mac\":\"03:02:71\",\"cmd\":\"get_duskdawn\",\"lat\":51.52,\"long\":-0.08,\"offset\":0}";
 		testReceivingACommand(new LinkedList<ItemConfigAndExpectedState>(), message);
-		Thread.sleep(60000);
+	}
+	
+	@Test
+	public void testOffMessageSentByAndriodApp() throws Exception {
+		String message = "030271,102,!R3D1F0|Living Room|Side Light 1 Off";
+		testReceivingACommand(new DimmerItem("LivingRoom"), "room=3,device=1,type=DIMMER", message, OnOffType.OFF);
+	}
+	
+	@Test
+	public void testDimMessageSentByAndriodApp() throws Exception {
+		String message = "030271,101,!R3D2FdP13|Living Room|Side Light 2 40%";
+		testReceivingACommand(new DimmerItem("LivingRoom"), "room=3,device=2,type=DIMMER", message, new PercentType("41"));
 	}
 	
 	private void testReceivingACommand(Item item, String itemConfig, String messageToReceive, State expectedState) throws Exception {
