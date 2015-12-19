@@ -270,15 +270,31 @@ public class LightwaveRfBinding extends
 	}
 
 	private void internalReceive(String itemName, Type command) {
-		String roomId = getRoomId(itemName);
-		String deviceId = getDeviceId(itemName);
-		LightwaveRfType deviceType = getType(itemName);
-		LightwaveRFCommand lightwaverfMessageString = messageConvertor
-				.convertToLightwaveRfMessage(roomId, deviceId, deviceType,
-						command);
-		wifiLink.sendLightwaveCommand(lightwaverfMessageString);
-
+		LightwaveRfItemDirection direction = getDirection(itemName);
+		if(direction == LightwaveRfItemDirection.IN_AND_OUT || direction == LightwaveRfItemDirection.OUT_ONLY){
+			String roomId = getRoomId(itemName);
+			String deviceId = getDeviceId(itemName);
+			LightwaveRfType deviceType = getType(itemName);
+			LightwaveRFCommand lightwaverfMessageString = messageConvertor
+					.convertToLightwaveRfMessage(roomId, deviceId, deviceType,
+							command);
+			wifiLink.sendLightwaveCommand(lightwaverfMessageString);
+		}
+		else {
+			logger.debug("Not sending command[" + command + "] to item[" + itemName + "] as it is IN_ONLY");
+		}
 	}
+	
+	private LightwaveRfItemDirection getDirection(String itemName) {
+		for (LightwaveRfBindingProvider provider : providers) {
+			LightwaveRfItemDirection direction = provider.getDirection(itemName);
+			if (direction != null) {
+				return direction;
+			}
+		}
+		return null;
+	}
+
 
 	private String getRoomId(String itemName) {
 		for (LightwaveRfBindingProvider provider : providers) {
@@ -316,18 +332,24 @@ public class LightwaveRfBinding extends
 		boolean published = false;
 		if (itemNames != null) {
 			for (String itemName : itemNames) {
-				LightwaveRfType deviceType = provider
-						.getTypeForItemName(itemName);
-				State state = message.getState(deviceType);
-				if (state != null) {
-					logger.info(
-							"Update from LightwaveRf ItemName[{}], State[{}]",
-							itemName, state);
-					published = true;
-					eventPublisher.postUpdate(itemName, state);
-				} else {
-					logger.info("State was null for {} type {}, message {}",
-							new Object[] {itemName, deviceType, message});
+				LightwaveRfItemDirection direction = provider.getDirection(itemName);
+				if(direction == LightwaveRfItemDirection.IN_AND_OUT || direction == LightwaveRfItemDirection.IN_ONLY){
+					LightwaveRfType deviceType = provider
+							.getTypeForItemName(itemName);
+					State state = message.getState(deviceType);
+					if (state != null) {
+						logger.info(
+								"Update from LightwaveRf ItemName[{}], State[{}]",
+								itemName, state);
+						published = true;
+						eventPublisher.postUpdate(itemName, state);
+					} else {
+						logger.info("State was null for {} type {}, message {}",
+								new Object[] {itemName, deviceType, message});
+					}
+				}
+				else{
+					logger.debug("Not publishing message[{}] as Item[{}] is OUT_ONLY", message.getLightwaveRfCommandString(), itemName);
 				}
 			}
 		}

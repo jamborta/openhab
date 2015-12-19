@@ -25,6 +25,7 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -83,52 +84,52 @@ public class LightwaveRfBindingFunctionalTest {
 
 	@Test
 	public void testDimmingCommandZero() throws Exception {
-		testSendingACommand(new DimmerItem("MyDimmer"), "room=1,device=2,type=DIMMER", new PercentType("00"), "200,!R1D2F0\n");
+		testSendingACommandAndVerify(new DimmerItem("MyDimmer"), "room=1,device=2,type=DIMMER", new PercentType("00"), "200,!R1D2F0\n");
 	}
 	
 	@Test
 	public void testDimmingCommandSend() throws Exception {
-		testSendingACommand(new DimmerItem("MyDimmer"), "room=1,device=2,type=DIMMER", new PercentType("50"), "200,!R1D2FdP16\n");
+		testSendingACommandAndVerify(new DimmerItem("MyDimmer"), "room=1,device=2,type=DIMMER", new PercentType("50"), "200,!R1D2FdP16\n");
 	}
 
 	@Test
 	public void testDimmingCommandReceive() throws Exception {
-		testReceivingACommand(new DimmerItem("MyDimmer"), "room=1,device=2,type=DIMMER", "200,!R1D2FdP16\n", new PercentType("50"));
+		testReceivingACommandAndVerify(new DimmerItem("MyDimmer"), "room=1,device=2,type=DIMMER", "200,!R1D2FdP16\n", new PercentType("50"));
 	}
 	
 	@Test
 	public void testOnCommandSend() throws Exception {
-		testSendingACommand(new SwitchItem("MySwitch"), "room=1,device=2,type=SWITCH", OnOffType.ON, "200,!R1D2F1\n");
+		testSendingACommandAndVerify(new SwitchItem("MySwitch"), "room=1,device=2,type=SWITCH", OnOffType.ON, "200,!R1D2F1\n");
 	}
 	
 	@Test
 	public void testOnCommandReceived() throws Exception {
-		testReceivingACommand(new SwitchItem("MySwitch"), "room=1,device=2,type=SWITCH", "200,!R1D2F1\n", OnOffType.ON);
+		testReceivingACommandAndVerify(new SwitchItem("MySwitch"), "room=1,device=2,type=SWITCH", "200,!R1D2F1\n", OnOffType.ON);
 	}
 	
 	@Test
 	public void testOffCommandSend() throws Exception {
-		testSendingACommand(new SwitchItem("MySwitch"), "room=1,device=2,type=SWITCH", OnOffType.OFF, "200,!R1D2F0\n");
+		testSendingACommandAndVerify(new SwitchItem("MySwitch"), "room=1,device=2,type=SWITCH", OnOffType.OFF, "200,!R1D2F0\n");
 	}
 	
 	@Test
 	public void testOffCommandReceived() throws Exception {
-		testReceivingACommand(new SwitchItem("MySwitch"), "room=1,device=2,type=SWITCH", "200,!R1D2F0\n", OnOffType.OFF);
+		testReceivingACommandAndVerify(new SwitchItem("MySwitch"), "room=1,device=2,type=SWITCH", "200,!R1D2F0\n", OnOffType.OFF);
 	}	
 	
 	@Test
 	public void testRelayCommandOpenSend() throws Exception {
-		testSendingACommand(new NumberItem("MyRelay"), "room=1,device=2,type=RELAY", new DecimalType("1"), "200,!R1D2F)\n");
+		testSendingACommandAndVerify(new NumberItem("MyRelay"), "room=1,device=2,type=RELAY", new DecimalType("1"), "200,!R1D2F)\n");
 	}
 
 	@Test
 	public void testRelayCommandCloseSend() throws Exception {
-		testSendingACommand(new NumberItem("MyRelay"), "room=1,device=2,type=RELAY", new DecimalType("-1"), "200,!R1D2F(\n");
+		testSendingACommandAndVerify(new NumberItem("MyRelay"), "room=1,device=2,type=RELAY", new DecimalType("-1"), "200,!R1D2F(\n");
 	}
 
 	@Test
 	public void testRelayCommandStopSend() throws Exception {
-		testSendingACommand(new NumberItem("MyRelay"), "room=1,device=2,type=RELAY", new DecimalType("0"), "200,!R1D2F^\n");
+		testSendingACommandAndVerify(new NumberItem("MyRelay"), "room=1,device=2,type=RELAY", new DecimalType("0"), "200,!R1D2F^\n");
 	}
 	
 	@Test
@@ -145,7 +146,7 @@ public class LightwaveRfBindingFunctionalTest {
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(new Date(1423850746000L));
 		itemConfigAndExpectedStates.add(new ItemConfigAndExpectedState(new DateTimeItem("TIME"), "serial=064402,type=UPDATETIME", new DateTimeType(cal)));
-		testReceivingACommand(itemConfigAndExpectedStates, message);
+		testReceivingACommandAndVerify(itemConfigAndExpectedStates, message);
 	}
 	
 	@Test
@@ -169,54 +170,92 @@ public class LightwaveRfBindingFunctionalTest {
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(new Date(1447712274000L));
 		itemConfigAndExpectedStates.add(new ItemConfigAndExpectedState(new NumberItem("TIME"), "serial=wifilink,type=UPDATETIME", new DateTimeType(cal)));
-		testReceivingACommand(itemConfigAndExpectedStates, message);
+		testReceivingACommandAndVerify(itemConfigAndExpectedStates, message);
 	}	
 	
 	@Test
 	public void testMoodCommandReceive() throws Exception {
-		testReceivingACommand(new NumberItem("MyMood"), "room=1,type=MOOD", "200,!R1FmP2\n", new DecimalType("2"));
+		testReceivingACommandAndVerify(new NumberItem("MyMood"), "room=1,type=MOOD", "200,!R1FmP2\n", new DecimalType("2"));
 	}
 	
 	@Test
 	public void testMoodCommandSend() throws Exception {
-		testSendingACommand(new NumberItem("MyMood"), "room=1,type=MOOD", new DecimalType("1"), "200,!R1FmP1\n");
+		testSendingACommandAndVerify(new NumberItem("MyMood"), "room=1,type=MOOD", new DecimalType("1"), "200,!R1FmP1\n");
 	}
 	
 	@Test
 	public void testAllOffCommandSend() throws Exception {
-		testSendingACommand(new SwitchItem("MyAllOff"), "room=2,type=ALL_OFF", OnOffType.OFF, "200,!R2Fa\n");
+		testSendingACommandAndVerify(new SwitchItem("MyAllOff"), "room=2,type=ALL_OFF", OnOffType.OFF, "200,!R2Fa\n");
 	}
 	
 	@Test
 	public void testAllOffCommandReceive() throws Exception {
-		testReceivingACommand(new SwitchItem("MyAllOff"), "room=2,type=ALL_OFF", "200,!R2Fa\n", OnOffType.OFF);
+		testReceivingACommandAndVerify(new SwitchItem("MyAllOff"), "room=2,type=ALL_OFF", "200,!R2Fa\n", OnOffType.OFF);
 	}
 	
 	@Test
 	public void testUnknownCommand() throws Exception {
 		String message = "{\"trans\":213454,\"mac\":\"03:02:71\",\"cmd\":\"get_duskdawn\",\"lat\":51.52,\"long\":-0.08,\"offset\":0}";
-		testReceivingACommand(new LinkedList<ItemConfigAndExpectedState>(), message);
+		testReceivingACommandAndVerify(new LinkedList<ItemConfigAndExpectedState>(), message);
 	}
 	
 	@Test
 	public void testOffMessageSentByAndriodApp() throws Exception {
 		String message = "030271,102,!R3D1F0|Living Room|Side Light 1 Off";
-		testReceivingACommand(new DimmerItem("LivingRoom"), "room=3,device=1,type=DIMMER", message, OnOffType.OFF);
+		testReceivingACommandAndVerify(new DimmerItem("LivingRoom"), "room=3,device=1,type=DIMMER", message, OnOffType.OFF);
 	}
 	
 	@Test
 	public void testDimMessageSentByAndriodApp() throws Exception {
 		String message = "030271,101,!R3D2FdP13|Living Room|Side Light 2 40%";
-		testReceivingACommand(new DimmerItem("LivingRoom"), "room=3,device=2,type=DIMMER", message, new PercentType("41"));
+		testReceivingACommandAndVerify(new DimmerItem("LivingRoom"), "room=3,device=2,type=DIMMER", message, new PercentType("41"));
+	}
+
+	@Test
+	public void testInOnlyMessageReceived() throws Exception {
+		String message = "030271,101,!R3D2FdP13|Living Room|Side Light 2 40%";
+		testReceivingACommandAndVerify(new DimmerItem("LivingRoom"), "<room=3,device=2,type=DIMMER", message, new PercentType("41"));
+	}
+
+	@Test
+	public void testOutOnlyMessageReceived() throws Exception {
+		String message = "030271,101,!R3D2FdP13|Living Room|Side Light 2 40%";
+		testReceivingACommandAndVerifyNoInteractions(new DimmerItem("LivingRoom"), ">room=3,device=2,type=DIMMER", message, new PercentType("41"));
+	}
+
+	@Test
+	public void testInOnlyCommandSend() throws Exception {
+		testSendingACommandAndVerifyNoInteractions(new SwitchItem("MySwitch"), "<room=1,device=2,type=SWITCH", OnOffType.ON, "200,!R1D2F1\n");
+	}
+
+	@Test
+	public void testOutOnlyCommandSend() throws Exception {
+		testSendingACommandAndVerify(new SwitchItem("MySwitch"), ">room=1,device=2,type=SWITCH", OnOffType.ON, "200,!R1D2F1\n");
 	}
 	
-	private void testReceivingACommand(Item item, String itemConfig, String messageToReceive, State expectedState) throws Exception {
+	private void testReceivingACommandAndVerify(Item item, String itemConfig, String messageToReceive, State expectedState) throws Exception {
 		List<ItemConfigAndExpectedState> listOfItemsAndExpectedStates = new LinkedList<ItemConfigAndExpectedState>();
 		listOfItemsAndExpectedStates.add(new ItemConfigAndExpectedState(item, itemConfig, expectedState));
-		testReceivingACommand(listOfItemsAndExpectedStates, messageToReceive);
+		testReceivingACommandAndVerify(listOfItemsAndExpectedStates, messageToReceive);
 	}
 	
-	private void testReceivingACommand(List<ItemConfigAndExpectedState> itemConfigAndExpectedStates, String messageToReceive) throws Exception {
+	private void testReceivingACommandAndVerify(List<ItemConfigAndExpectedState> itemConfigAndExpectedStates, String messageToReceive) throws Exception {
+		receiveACommand(itemConfigAndExpectedStates, messageToReceive);
+		verifyReceivedCommands(itemConfigAndExpectedStates);
+	}
+
+	private void testReceivingACommandAndVerifyNoInteractions(Item item, String itemConfig, String messageToReceive, State expectedState) throws Exception {
+		List<ItemConfigAndExpectedState> listOfItemsAndExpectedStates = new LinkedList<ItemConfigAndExpectedState>();
+		listOfItemsAndExpectedStates.add(new ItemConfigAndExpectedState(item, itemConfig, expectedState));
+		testReceivingACommandAndVerifyNoInteractions(listOfItemsAndExpectedStates, messageToReceive);
+	}
+	
+	private void testReceivingACommandAndVerifyNoInteractions(List<ItemConfigAndExpectedState> itemConfigAndExpectedStates, String messageToReceive) throws Exception {
+		receiveACommand(itemConfigAndExpectedStates, messageToReceive);
+		verifyNoMoreInteractions(mockEventPublisher);
+	}
+	
+	private void receiveACommand(List<ItemConfigAndExpectedState> itemConfigAndExpectedStates, String messageToReceive) throws Exception {
 		// Set up sockets for testing
 		CyclicBarrier sendMessageBarrier = new CyclicBarrier(2);
 		CountDownLatch messageProcessedCountdownLatch = new CountDownLatch(itemConfigAndExpectedStates.size());
@@ -241,7 +280,10 @@ public class LightwaveRfBindingFunctionalTest {
 		sendMessageBarrier.await();
 		// Wait till the receive has been processes we use a timeout in case we don't receive anything
 		messageProcessedCountdownLatch.await(1000, TimeUnit.MILLISECONDS);
-		
+
+	}
+	
+	private void verifyReceivedCommands(List<ItemConfigAndExpectedState> itemConfigAndExpectedStates){
 		// Validate what we sent on the event bus
 		for(ItemConfigAndExpectedState t : itemConfigAndExpectedStates){
 			verify(mockEventPublisher).postUpdate(t.getItem().getName(), t.getExpectedState());
@@ -249,7 +291,24 @@ public class LightwaveRfBindingFunctionalTest {
 		verifyNoMoreInteractions(mockEventPublisher);
 	}
 	
-	private void testSendingACommand(Item item, String itemConfig, Command command, String expectedCommand) throws Exception {
+	private void testSendingACommandAndVerify(Item item, String itemConfig, Command command, String expectedCommand) throws Exception {
+		DatagramPacket sentPacket = sendCommand(item, itemConfig, command);
+		// Validate what we sent
+		verifyCommandSent(expectedCommand, sentPacket);
+	}	
+
+	private void testSendingACommandAndVerifyNoInteractions(Item item, String itemConfig, Command command, String expectedCommand) throws Exception {
+		DatagramPacket sentPacket = null;
+		try{
+			sentPacket = sendCommand(item, itemConfig, command);
+		}
+		catch(TimeoutException e){
+			assertEquals(null, sentPacket);
+		}
+	}	
+	
+	
+	private DatagramPacket sendCommand(Item item, String itemConfig, Command command) throws Exception {
 		// Set up sockets for testing
 		DatagramPacket sentPacket = new DatagramPacket(new byte[1024], 1024);
 		CyclicBarrier barrier = new CyclicBarrier(2);
@@ -268,13 +327,15 @@ public class LightwaveRfBindingFunctionalTest {
 		binding.internalReceiveCommand(item.getName() ,command);
 
 		// Wait till the socket has sent the command
-		barrier.await();
-		
-		// Validate what we sent
+		barrier.await(1000, TimeUnit.MILLISECONDS);
+		return sentPacket;
+	}
+	
+	private void verifyCommandSent(String expectedCommand, DatagramPacket sentPacket) throws Exception {
 		assertEquals(expectedCommand, getReceivedStringFromPacket(sentPacket));
 		verify(mockTransmitSocket, times(1)).send(any(DatagramPacket.class));
 		verifyNoMoreInteractions(mockTransmitSocket);
-	}	
+	}
 	
 	private Answer<DatagramPacket> waitIndefinitely(){
 		return new Answer<DatagramPacket>() {
