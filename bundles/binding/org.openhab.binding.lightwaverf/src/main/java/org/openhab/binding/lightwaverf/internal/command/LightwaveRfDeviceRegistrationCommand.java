@@ -28,7 +28,7 @@ public class LightwaveRfDeviceRegistrationCommand extends
 		AbstractLightwaveRfCommand implements LightwaveRFCommand {
 
 	private static final Pattern REG_EXP = Pattern
-			.compile(".*([0-9]{1,3}),!F\\*p\\s*");
+			.compile(".*?([0-9]{1,3}),!F\\*p\\s*");
 	private final LightwaveRfMessageId messageId;
 	private static final String FUNCTION = "*";
 	private static final String PARAMETER = "";

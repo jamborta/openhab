@@ -28,7 +28,7 @@ public class LightwaveRfAllOffCommand extends AbstractLightwaveRfCommand impleme
 		LightwaveRfRoomMessage {
 
 	private static final Pattern REG_EXP = Pattern
-			.compile(".*([0-9]{1,3}),!R([0-9])Fa.*\\s*");
+			.compile(".*?([0-9]{1,3}),!R([0-9])Fa.*\\s*");
 	private static final String FUNCTION = "a";
 	
 	private final LightwaveRfMessageId messageId;
