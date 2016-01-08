@@ -15,8 +15,8 @@ import org.openhab.core.library.types.StringType;
 public class LightwaveRfWifiLinkStatusMessageTest {
 
 	private String messageString = "*!{\"trans\":452,\"mac\":\"ab:cd:ef\",\"time\":1447712274,\"type\":\"hub\",\"prod\":\"wfl\",\"fw\":\"U2.91Y\","
-	 + "\"uptime\":1386309,\"timeZone\":0,\"lat\":52.48,\"long\":-87.89,\"duskTime\":1447690400,"
-	 + "\"dawnTime\":1447659083,\"tmrs\":0,\"evns\":1,\"run\":0,\"macs\":8,\"ip\":\"192.168.0.1\",\"devs\":0}";
+	 + "\"uptime\":1386309,\"timeZ\":0,\"lat\":52.48,\"long\":-87.89,\"duskT\":1447690400,"
+	 + "\"dawnT\":1447659083,\"tmrs\":0,\"evns\":1,\"run\":0,\"macs\":8,\"ip\":\"192.168.0.1\",\"devs\":0}";
 
 	
 	@Test

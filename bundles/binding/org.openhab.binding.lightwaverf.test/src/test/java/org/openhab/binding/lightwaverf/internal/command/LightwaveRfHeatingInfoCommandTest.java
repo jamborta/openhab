@@ -41,13 +41,12 @@ public class LightwaveRfHeatingInfoCommandTest {
 	
 	@Test
 	public void test() throws Exception {
-		String message = "*!{\"trans\":1506,\"mac\":\"03:02:71\",\"time\":1423850746,\"prod\":\"valve\",\"serial\":\"064402\",\"signal\":54,\"type\":\"temp\",\"batt\":2.99,\"ver\":56,\"state\":\"boost\",\"cTemp\":22.3,\"cTarg\":24.0,\"output\":100,\"nTarg\":20.0,\"nSlot\":\"18:45\",\"prof\":5}";
+		String message = "*!{\"trans\":1506,\"mac\":\"03:02:71\",\"time\":1423850746,\"prod\":\"valve\",\"serial\":\"064402\",\"router\":\"030271\",\"type\":\"temp\",\"batt\":2.99,\"ver\":56,\"state\":\"boost\",\"cTemp\":22.3,\"cTarg\":24.0,\"output\":100,\"nTarg\":20.0,\"nSlot\":\"18:45\",\"prof\":5}";
 		LightwaveRfSerialMessage command = new LightwaveRfHeatingInfoResponse(message);
 		//LightwaveRfHeatingInfoResponse 
 		assertEquals(new DecimalType("2.99"), command.getState(LightwaveRfType.HEATING_BATTERY));
 		assertEquals(new DecimalType("22.3").doubleValue(), ((DecimalType) command.getState(LightwaveRfType.HEATING_CURRENT_TEMP)).doubleValue(), 0.001);
 		assertEquals(new DecimalType("24"), command.getState(LightwaveRfType.HEATING_SET_TEMP));
-		assertEquals(new DecimalType("54"), command.getState(LightwaveRfType.SIGNAL));
 		assertEquals(new StringType("56"), command.getState(LightwaveRfType.VERSION));
 		assertEquals(message, command.getLightwaveRfCommandString());
 		assertEquals("064402", command.getSerial());
@@ -57,7 +56,6 @@ public class LightwaveRfHeatingInfoCommandTest {
 		
 		assertEquals("03:02:71", heatingInfoCommand.getMac());
 		assertEquals("valve", heatingInfoCommand.getProd());
-		assertEquals("54", heatingInfoCommand.getSignal());
 		assertEquals("temp", heatingInfoCommand.getType());
 		assertEquals("2.99",heatingInfoCommand.getBatteryLevel());
 		assertEquals("56", heatingInfoCommand.getVersion());

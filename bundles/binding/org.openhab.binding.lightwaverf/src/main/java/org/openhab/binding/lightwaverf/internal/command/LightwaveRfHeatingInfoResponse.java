@@ -40,6 +40,8 @@ public class LightwaveRfHeatingInfoResponse extends AbstractLightwaveRfJsonMessa
 			.compile(".*\"prod\":\"([^\"}]*)\".*");
 	private static final Pattern SERIAL_ID_REG_EXP = Pattern
 			.compile(".*\"serial\":\"([^\"}]*)\".*");
+	private static final Pattern ROUTER = Pattern
+			.compile(".*\"router\":\"([^\"}]*)\".*");
 	private static final Pattern TYPE_REG_EXP = Pattern
 			.compile(".*\"type\":\"([^\"}]*)\".*");
 	private static final Pattern BATTERY_REG_EXP = Pattern
@@ -65,6 +67,7 @@ public class LightwaveRfHeatingInfoResponse extends AbstractLightwaveRfJsonMessa
 	private final Date time;
 	private final String prod;
 	private final String serial;
+	private final String router;
 	private final String type;
 	private final String batteryLevel;
 	private final String version;
@@ -82,6 +85,7 @@ public class LightwaveRfHeatingInfoResponse extends AbstractLightwaveRfJsonMessa
 		time = getDateFromText(TIME_ID_REG_EXP, message);
 		prod = getStringFromText(PROD_REG_EXP, message);
 		serial = getStringFromText(SERIAL_ID_REG_EXP, message);
+		router = getStringFromText(ROUTER, message);
 		type = getStringFromText(TYPE_REG_EXP, message);
 		batteryLevel = getStringFromText(BATTERY_REG_EXP,message);
 		version = getStringFromText(VERSION_REG_EXP, message);
@@ -99,8 +103,10 @@ public class LightwaveRfHeatingInfoResponse extends AbstractLightwaveRfJsonMessa
 		return new StringBuilder("*!{").append("\"trans\":")
 				.append(getMessageId().getMessageIdString()).append(",\"mac\":\"")
 				.append(mac).append("\",\"time\":").append(getLightwaveDateFromJavaDate(time))
-				.append(",\"prod\":\"").append(prod).append("\",\"serial\":\"")
-				.append(",\"type\":\"").append(type).append("\",\"batt\":")
+				.append(",\"prod\":\"").append(prod)
+				.append("\",\"serial\":\"").append(serial)
+				.append("\",\"router\":\"").append(router)
+				.append("\",\"type\":\"").append(type).append("\",\"batt\":")
 				.append(batteryLevel).append(",\"ver\":").append(version)
 				.append(",\"state\":\"").append(state).append("\",\"cTemp\":")
 				.append(currentTemperature).append(",\"cTarg\":")
