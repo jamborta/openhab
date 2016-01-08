@@ -50,7 +50,6 @@ public class LightwaverfConvertor {
 
 		switch (deviceType) {
 		case HEATING_BATTERY:
-		case SIGNAL:
 		case HEATING_CURRENT_TEMP:
 		case HEATING_MODE:
 		case VERSION:

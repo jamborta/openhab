@@ -134,15 +134,14 @@ public class LightwaveRfBindingFunctionalTest {
 	
 	@Test
 	public void testHeatingInfoResponseReceived() throws Exception {
-		String message = "*!{\"trans\":1506,\"mac\":\"03:02:71\",\"time\":1423850746,\"prod\":\"valve\",\"serial\":\"064402\",\"signal\":54,\"type\":\"temp\",\"batt\":2.99,\"ver\":56,\"state\":\"boost\",\"cTemp\":22.3,\"cTarg\":24.0,\"output\":100,\"nTarg\":20.0,\"nSlot\":\"18:45\",\"prof\":5}";
+		String message = "*!{\"trans\":1,\"mac\":\"03:02:71\",\"time\":1423850746,\"prod\":\"valve\",\"serial\":\"064402\",\"router\":\"030271\",\"type\":\"temp\",\"batt\":2.49,\"ver\":56,\"state\":\"run\",\"cTemp\":14.3,\"cTarg\":14.0,\"output\":0,\"nTarg\":0.0,\"nSlot\":\"06:00\",\"prof\":5}";
 		List<ItemConfigAndExpectedState> itemConfigAndExpectedStates = new LinkedList<ItemConfigAndExpectedState>();
-		itemConfigAndExpectedStates.add(new ItemConfigAndExpectedState(new NumberItem("BATTERY"), "serial=064402,type=HEATING_BATTERY", new DecimalType("2.99")));
-		itemConfigAndExpectedStates.add(new ItemConfigAndExpectedState(new NumberItem("CURRENT_TEMP"), "serial=064402,type=HEATING_CURRENT_TEMP", new DecimalType("22.3")));
-		itemConfigAndExpectedStates.add(new ItemConfigAndExpectedState(new StringItem("MODE"), "serial=064402,type=HEATING_MODE", new StringType("boost")));
+		itemConfigAndExpectedStates.add(new ItemConfigAndExpectedState(new NumberItem("BATTERY"), "serial=064402,type=HEATING_BATTERY", new DecimalType("2.49")));
+		itemConfigAndExpectedStates.add(new ItemConfigAndExpectedState(new NumberItem("CURRENT_TEMP"), "serial=064402,type=HEATING_CURRENT_TEMP", new DecimalType("14.3")));
+		itemConfigAndExpectedStates.add(new ItemConfigAndExpectedState(new StringItem("MODE"), "serial=064402,type=HEATING_MODE", new StringType("run")));
 		itemConfigAndExpectedStates.add(new ItemConfigAndExpectedState(new StringItem("VERSION"), "serial=064402,type=VERSION", new StringType("56")));
-		itemConfigAndExpectedStates.add(new ItemConfigAndExpectedState(new NumberItem("SIGNAL"), "serial=064402,type=SIGNAL", new DecimalType("54")));
-		itemConfigAndExpectedStates.add(new ItemConfigAndExpectedState(new NumberItem("SET_TEMP"), "serial=064402,type=HEATING_SET_TEMP", new DecimalType("24.0")));
-		itemConfigAndExpectedStates.add(new ItemConfigAndExpectedState(new NumberItem("OUTPUT"), "serial=064402,type=HEATING_OUTPUT", new DecimalType("100")));
+		itemConfigAndExpectedStates.add(new ItemConfigAndExpectedState(new NumberItem("SET_TEMP"), "serial=064402,type=HEATING_SET_TEMP", new DecimalType("14.0")));
+		itemConfigAndExpectedStates.add(new ItemConfigAndExpectedState(new NumberItem("OUTPUT"), "serial=064402,type=HEATING_OUTPUT", new DecimalType("0")));
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(new Date(1423850746000L));
 		itemConfigAndExpectedStates.add(new ItemConfigAndExpectedState(new DateTimeItem("TIME"), "serial=064402,type=UPDATETIME", new DateTimeType(cal)));
@@ -151,13 +150,11 @@ public class LightwaveRfBindingFunctionalTest {
 	
 	@Test
 	public void testWifiLinkStatusReceived() throws Exception {
-		String message = "*!{\"trans\":452,\"mac\":\"ab:cd:ef\",\"time\":1447712274,\"type\":\"hub\",\"prod\":\"wfl\",\"fw\":\"U2.91Y\","
-				 + "\"uptime\":1386309,\"timeZone\":0,\"lat\":52.48,\"long\":-87.89,\"duskTime\":1447690400,"
-				 + "\"dawnTime\":1447659083,\"tmrs\":0,\"evns\":1,\"run\":0,\"macs\":8,\"ip\":\"192.168.0.1\",\"devs\":0}";
-
+		String message = "*!{\"trans\":2,\"mac\":\"ab:cd:ef\",\"time\":1447712274,\"type\":\"hub\",\"prod\":\"wfl\",\"fw\":\"U2.91Z\",\"uptime\":1386309,\"timeZ\":0,\"lat\":52.48,\"long\":-87.89,\"duskT\":1447690400,\"dawnT\":1447659083,\"tmrs\":0,\"evns\":4,\"run\":0,\"macs\":9,\"ip\":\"192.168.0.1\",\"devs\":4}";
+		
 		List<ItemConfigAndExpectedState> itemConfigAndExpectedStates = new LinkedList<ItemConfigAndExpectedState>();
 		itemConfigAndExpectedStates.add(new ItemConfigAndExpectedState(new StringItem("WIFILINK_IP"), "serial=wifilink,type=WIFILINK_IP", new StringType("192.168.0.1")));
-		itemConfigAndExpectedStates.add(new ItemConfigAndExpectedState(new StringItem("WIFILINK_FIRMWARE"), "serial=wifilink,type=WIFILINK_FIRMWARE", new StringType("U2.91Y")));
+		itemConfigAndExpectedStates.add(new ItemConfigAndExpectedState(new StringItem("WIFILINK_FIRMWARE"), "serial=wifilink,type=WIFILINK_FIRMWARE", new StringType("U2.91Z")));
 		Calendar duskCal = Calendar.getInstance();
 		duskCal.setTime(new Date(1447690400000L));
 		itemConfigAndExpectedStates.add(new ItemConfigAndExpectedState(new DateTimeItem("WIFILINK_DUSK_TIME"), "serial=wifilink,type=WIFILINK_DUSK_TIME", new DateTimeType(duskCal)));
@@ -197,6 +194,11 @@ public class LightwaveRfBindingFunctionalTest {
 	public void testUnknownCommand() throws Exception {
 		String message = "{\"trans\":213454,\"mac\":\"03:02:71\",\"cmd\":\"get_duskdawn\",\"lat\":51.52,\"long\":-0.08,\"offset\":0}";
 		testReceivingACommandAndVerify(new LinkedList<ItemConfigAndExpectedState>(), message);
+	}
+	
+	@Test
+	public void test() throws Exception {
+		
 	}
 	
 	@Test

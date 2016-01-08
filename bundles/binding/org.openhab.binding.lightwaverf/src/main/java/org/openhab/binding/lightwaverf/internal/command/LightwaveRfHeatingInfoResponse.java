@@ -40,8 +40,6 @@ public class LightwaveRfHeatingInfoResponse extends AbstractLightwaveRfJsonMessa
 			.compile(".*\"prod\":\"([^\"}]*)\".*");
 	private static final Pattern SERIAL_ID_REG_EXP = Pattern
 			.compile(".*\"serial\":\"([^\"}]*)\".*");
-	private static final Pattern SIGNAL_REG_EXP = Pattern
-			.compile(".*\"signal\":([^,}]*).*");
 	private static final Pattern TYPE_REG_EXP = Pattern
 			.compile(".*\"type\":\"([^\"}]*)\".*");
 	private static final Pattern BATTERY_REG_EXP = Pattern
@@ -67,7 +65,6 @@ public class LightwaveRfHeatingInfoResponse extends AbstractLightwaveRfJsonMessa
 	private final Date time;
 	private final String prod;
 	private final String serial;
-	private final String signal;
 	private final String type;
 	private final String batteryLevel;
 	private final String version;
@@ -85,7 +82,6 @@ public class LightwaveRfHeatingInfoResponse extends AbstractLightwaveRfJsonMessa
 		time = getDateFromText(TIME_ID_REG_EXP, message);
 		prod = getStringFromText(PROD_REG_EXP, message);
 		serial = getStringFromText(SERIAL_ID_REG_EXP, message);
-		signal = getStringFromText(SIGNAL_REG_EXP, message);
 		type = getStringFromText(TYPE_REG_EXP, message);
 		batteryLevel = getStringFromText(BATTERY_REG_EXP,message);
 		version = getStringFromText(VERSION_REG_EXP, message);
@@ -104,7 +100,6 @@ public class LightwaveRfHeatingInfoResponse extends AbstractLightwaveRfJsonMessa
 				.append(getMessageId().getMessageIdString()).append(",\"mac\":\"")
 				.append(mac).append("\",\"time\":").append(getLightwaveDateFromJavaDate(time))
 				.append(",\"prod\":\"").append(prod).append("\",\"serial\":\"")
-				.append(serial).append("\",\"signal\":").append(signal)
 				.append(",\"type\":\"").append(type).append("\",\"batt\":")
 				.append(batteryLevel).append(",\"ver\":").append(version)
 				.append(",\"state\":\"").append(state).append("\",\"cTemp\":")
@@ -121,8 +116,6 @@ public class LightwaveRfHeatingInfoResponse extends AbstractLightwaveRfJsonMessa
 		switch (type) {
 		case HEATING_BATTERY:
 			return new DecimalType(getBatteryLevel());
-		case SIGNAL:
-			return new DecimalType(getSignal());
 		case HEATING_CURRENT_TEMP:
 			return new DecimalType(getCurrentTemperature());
 		case HEATING_SET_TEMP:
@@ -155,10 +148,6 @@ public class LightwaveRfHeatingInfoResponse extends AbstractLightwaveRfJsonMessa
 
 	public Date getTime() {
 		return time;
-	}
-
-	public String getSignal() {
-		return signal;
 	}
 
 	public String getBatteryLevel() {

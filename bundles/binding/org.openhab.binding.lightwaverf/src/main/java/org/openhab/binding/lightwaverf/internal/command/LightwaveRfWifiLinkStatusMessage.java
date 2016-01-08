@@ -47,15 +47,15 @@ public class LightwaveRfWifiLinkStatusMessage extends AbstractLightwaveRfJsonMes
 	private static final Pattern UPTIME_REG_EXP = Pattern
 			.compile(".*\"uptime\":([^,}]*).*");
 	private static final Pattern TIMEZONE_REG_EXP = Pattern
-			.compile(".*\"timeZone\":([^,}]*).*");
+			.compile(".*\"timeZ\":([^,}]*).*");
 	private static final Pattern LATITUDE_REG_EXP = Pattern
 			.compile(".*\"lat\":([^,}]*).*");
 	private static final Pattern LONGITUDE_REG_EXP = Pattern
 			.compile(".*\"long\":([^,}]*).*");
 	private static final Pattern DUSK_TIME_REG_EXP = Pattern
-			.compile(".*\"duskTime\":([^,}]*).*");
+			.compile(".*\"duskT\":([^,}]*).*");
 	private static final Pattern DAWN_TIME_REG_EXP = Pattern
-			.compile(".*\"dawnTime\":([^,}]*).*");
+			.compile(".*\"dawnT\":([^,}]*).*");
 	private static final Pattern TMRS_REG_EXP = Pattern
 			.compile(".*\"tmrs\":([^,}]*).*");
 	private static final Pattern ENVS_REG_EXP = Pattern
