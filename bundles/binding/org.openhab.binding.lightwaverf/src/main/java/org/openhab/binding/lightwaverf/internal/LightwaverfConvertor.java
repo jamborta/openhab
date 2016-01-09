@@ -50,7 +50,7 @@ public class LightwaverfConvertor {
 			String deviceId, LightwaveRfType deviceType, Type command) {
 		int messageId = getAndIncrementMessageId();
 
-		LinkedList<LightwaveRFCommand> commandList = new LinkedList<>();
+		LinkedList<LightwaveRFCommand> commandList = new LinkedList<LightwaveRFCommand>();
 		
 		switch (deviceType) {
 		case HEATING_BATTERY:
