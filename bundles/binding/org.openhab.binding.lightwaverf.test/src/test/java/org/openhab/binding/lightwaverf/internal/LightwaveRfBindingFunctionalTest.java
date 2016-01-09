@@ -149,6 +149,11 @@ public class LightwaveRfBindingFunctionalTest {
 	}
 	
 	@Test
+	public void testSetHeatCommandSend() throws Exception {
+		testSendingACommandAndVerify(new NumberItem("SetTemp"), "room=1,serial=5A4F02,type=HEATING_SET_TEMP", new DecimalType("22"), "200,!R1DhF*tP22.0\n");
+	}
+	
+	@Test
 	public void testWifiLinkStatusReceived() throws Exception {
 		String message = "*!{\"trans\":2,\"mac\":\"ab:cd:ef\",\"time\":1447712274,\"type\":\"hub\",\"prod\":\"wfl\",\"fw\":\"U2.91Z\",\"uptime\":1386309,\"timeZ\":0,\"lat\":52.48,\"long\":-87.89,\"duskT\":1447690400,\"dawnT\":1447659083,\"tmrs\":0,\"evns\":4,\"run\":0,\"macs\":9,\"ip\":\"192.168.0.1\",\"devs\":4}";
 		

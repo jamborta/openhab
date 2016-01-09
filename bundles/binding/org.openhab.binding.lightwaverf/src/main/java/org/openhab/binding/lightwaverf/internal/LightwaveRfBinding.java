@@ -275,10 +275,11 @@ public class LightwaveRfBinding extends
 			String roomId = getRoomId(itemName);
 			String deviceId = getDeviceId(itemName);
 			LightwaveRfType deviceType = getType(itemName);
-			LightwaveRFCommand lightwaverfMessageString = messageConvertor
-					.convertToLightwaveRfMessage(roomId, deviceId, deviceType,
-							command);
-			wifiLink.sendLightwaveCommand(lightwaverfMessageString);
+			List<LightwaveRFCommand> lightwaverfCommands = messageConvertor
+					.convertToLightwaveRfMessage(roomId, deviceId, deviceType,command);
+			for(LightwaveRFCommand lightwaverfCommand : lightwaverfCommands){
+				wifiLink.sendLightwaveCommand(lightwaverfCommand);
+			}
 		}
 		else {
 			logger.debug("Not sending command[" + command + "] to item[" + itemName + "] as it is IN_ONLY");

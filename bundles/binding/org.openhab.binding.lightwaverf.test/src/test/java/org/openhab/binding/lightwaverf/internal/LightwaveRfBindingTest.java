@@ -51,7 +51,7 @@ public class LightwaveRfBindingTest {
 		when(mockBindingProvider.getDeviceId("MySwitch")).thenReturn("3");
 		when(mockBindingProvider.getTypeForItemName("MySwitch")).thenReturn(LightwaveRfType.SWITCH);
 		when(mockBindingProvider.getDirection("MySwitch")).thenReturn(LightwaveRfItemDirection.IN_AND_OUT);
-		when(mockLightwaveRfConvertor.convertToLightwaveRfMessage("2", "3", LightwaveRfType.SWITCH, OnOffType.ON)).thenReturn(mockLightwaveRfCommand);
+		when(mockLightwaveRfConvertor.convertToLightwaveRfMessage("2", "3", LightwaveRfType.SWITCH, OnOffType.ON)).thenReturn(Arrays.asList(mockLightwaveRfCommand));
 		
 		LightwaveRfBinding binding = new LightwaveRfBinding();
 		binding.addBindingProvider(mockBindingProvider);
@@ -67,7 +67,7 @@ public class LightwaveRfBindingTest {
 		when(mockBindingProvider.getDeviceId("MySwitch")).thenReturn("3");
 		when(mockBindingProvider.getTypeForItemName("MySwitch")).thenReturn(LightwaveRfType.SWITCH);
 		when(mockBindingProvider.getDirection("MySwitch")).thenReturn(LightwaveRfItemDirection.IN_AND_OUT);
-		when(mockLightwaveRfConvertor.convertToLightwaveRfMessage("2", "3", LightwaveRfType.SWITCH, OnOffType.ON)).thenReturn(mockLightwaveRfCommand);
+		when(mockLightwaveRfConvertor.convertToLightwaveRfMessage("2", "3", LightwaveRfType.SWITCH, OnOffType.ON)).thenReturn(Arrays.asList(mockLightwaveRfCommand));
 			
 		
 		LightwaveRfBinding binding = new LightwaveRfBinding();

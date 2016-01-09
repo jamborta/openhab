@@ -1,5 +1,7 @@
 package org.openhab.binding.lightwaverf.internal;
 
+import java.util.List;
+
 import org.junit.Ignore;
 import org.junit.Test;
 import org.openhab.binding.lightwaverf.internal.command.LightwaveRFCommand;
@@ -29,8 +31,10 @@ public class LightwaveRfWifiLinkTest {
 				TIMEOUT_OK);
 		wifiLink.start();
 		
-		LightwaveRFCommand command = CONVERTOR.convertToLightwaveRfMessage("3", "5", LightwaveRfType.SWITCH, OnOffType.OFF);
-		wifiLink.sendLightwaveCommand(command);
+		List<LightwaveRFCommand> commands = CONVERTOR.convertToLightwaveRfMessage("3", "5", LightwaveRfType.SWITCH, OnOffType.OFF);
+		for(LightwaveRFCommand command : commands){
+			wifiLink.sendLightwaveCommand(command);
+		}
 		
 		Thread.sleep(THREAD_SLEEP);
 	}	
@@ -47,9 +51,10 @@ public class LightwaveRfWifiLinkTest {
 				TIMEOUT_OK);
 		wifiLink.start();
 		
-		LightwaveRFCommand command = CONVERTOR.convertToLightwaveRfMessage("2", "2", LightwaveRfType.DIMMER, OnOffType.OFF);
-		wifiLink.sendLightwaveCommand(command);
-		
+		List<LightwaveRFCommand> commands = CONVERTOR.convertToLightwaveRfMessage("2", "2", LightwaveRfType.DIMMER, OnOffType.OFF);
+		for(LightwaveRFCommand command : commands){
+			wifiLink.sendLightwaveCommand(command);
+		}
 		Thread.sleep(THREAD_SLEEP);
 	}	
 
