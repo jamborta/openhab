@@ -8,6 +8,8 @@
  */
 package org.openhab.binding.lightwaverf.internal;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -44,10 +46,12 @@ public class LightwaverfConvertor {
 	private int nextMessageId = 200;
 	private final Lock lock = new ReentrantLock();
 
-	public LightwaveRFCommand convertToLightwaveRfMessage(String roomId,
+	public List<LightwaveRFCommand> convertToLightwaveRfMessage(String roomId,
 			String deviceId, LightwaveRfType deviceType, Type command) {
 		int messageId = getAndIncrementMessageId();
 
+		LinkedList<LightwaveRFCommand> commandList = new LinkedList<>();
+		
 		switch (deviceType) {
 		case HEATING_BATTERY:
 		case HEATING_CURRENT_TEMP:
@@ -56,45 +60,50 @@ public class LightwaverfConvertor {
 			throw new IllegalArgumentException(deviceType
 					+ " : is read only it can't be set");
 		case HEATING_SET_TEMP:
-			return new LightwaveRfSetHeatingTemperatureCommand(messageId,
-					roomId, ((DecimalType) command).doubleValue());
+			commandList.add(new LightwaveRfSetHeatingTemperatureCommand(messageId,
+					roomId, ((DecimalType) command).doubleValue()));
+			commandList.add(new LightwaveRfHeatInfoRequest(getAndIncrementMessageId(), roomId));
+			break;
 		case DIMMER:
 		case SWITCH:
 			if (command instanceof OnOffType) {
 				boolean on = (command == OnOffType.ON);
-				return new LightwaveRfOnOffCommand(messageId, roomId, deviceId,
-						on);
+				commandList.add(new LightwaveRfOnOffCommand(messageId, roomId, deviceId, on));
 			} else if (command instanceof PercentType) {
 				int dimmingLevel = ((PercentType) command).intValue();
-				return new LightwaveRfDimCommand(messageId, roomId, deviceId,
-						dimmingLevel);
+				commandList.add(new LightwaveRfDimCommand(messageId, roomId, deviceId,
+						dimmingLevel));
 			} else {
 				throw new RuntimeException("Unsupported Command: " + command);
 			}
+			break;
 		case RELAY:
 			if(command instanceof DecimalType){
 				int state = ((DecimalType) command).intValue();
-				return new LightwaveRfRelayCommand(messageId, roomId, deviceId, state);
+				commandList.add(new LightwaveRfRelayCommand(messageId, roomId, deviceId, state));
 			} else {
 				throw new RuntimeException("Unsupported Command: " + command);
 			}
+			break;
 		case MOOD:
 			if(command instanceof DecimalType){
 				int state = ((DecimalType) command).intValue();
-				return new LightwaveRfMoodCommand(messageId, roomId, state);
+				commandList.add(new LightwaveRfMoodCommand(messageId, roomId, state));
 			} else {
 				throw new RuntimeException("Unsupported Command: " + command);
 			}
+			break;
 		case ALL_OFF:
 			if(command instanceof OnOffType){
-				return new LightwaveRfAllOffCommand(messageId, roomId);
+				commandList.add(new LightwaveRfAllOffCommand(messageId, roomId));
 			} else {
 				throw new RuntimeException("Unsupported Command: " + command);
 			}
+			break;
 		default:
 			throw new IllegalArgumentException(deviceType + " : is unexpected");
 		}
-
+		return commandList;
 	}
 
 	public LightwaveRFCommand convertToLightwaveRfMessage(String roomId,
