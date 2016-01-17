@@ -170,7 +170,7 @@ public class LightwaveRfWifiLink implements LightwaveRfStringMessageListener {
 				break;
 			}
 		} catch (LightwaveRfMessageException e) {
-			logger.error("Error converting message: " + message);
+			logger.error(e.getMessage());
 		}
 	}
 	

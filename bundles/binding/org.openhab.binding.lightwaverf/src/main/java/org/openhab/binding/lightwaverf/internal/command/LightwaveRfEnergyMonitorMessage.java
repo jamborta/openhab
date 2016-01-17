@@ -21,9 +21,8 @@ import org.openhab.core.types.State;
 
 /**
  * A message received from the Energy Monitor. On
- * the LAN the messages look like: *!{"trans":215955,"mac":"03:41:C4","time":1435620183,
- * "prod":"pwrMtr","serial":"9470FE","signal":79,"type":"energy",
- * "cUse":271,"maxUse":2812,"todUse":8414,"yesUse":8377}
+ * the LAN the messages look like: *!{"trans":20477,"mac":"03:41:C4","time":1453035345,
+ * "prod":"pwrMtr","serial":"9470FE","router":"4F0500","type":"energy","cUse":333,"todUse":4026,"yesUse":0}
  * 
  * @author Neil Renaud
  * @since 1.7.0
@@ -38,28 +37,25 @@ public class LightwaveRfEnergyMonitorMessage extends AbstractLightwaveRfJsonMess
 			.compile(".*\"prod\":\"([^\"}]*)\".*");
 	private static final Pattern SERIAL_ID_REG_EXP = Pattern
 			.compile(".*\"serial\":\"([^\"}]*)\".*");
-	private static final Pattern SIGNAL_REG_EXP = Pattern
-			.compile(".*\"signal\":([^,}]*).*");
+	private static final Pattern ROUTER_REG_EXP = Pattern
+			.compile(".*\"router\":\"([^\"}]*)\".*");
 	private static final Pattern TYPE_REG_EXP = Pattern
 			.compile(".*\"type\":\"([^\"}]*)\".*");
 	private static final Pattern CURRENT_USE_REG_EXP = Pattern
 			.compile(".*\"cUse\":([^,}]*).*");
-	private static final Pattern MAX_USE_REG_EXP = Pattern
-			.compile(".*\"maxUse\":([^,}]*).*");
 	private static final Pattern TODAY_USE_REG_EXP = Pattern
 			.compile(".*\"todUse\":([^,}]*).*");
 	private static final Pattern YESTERDAY_USE_REG_EXP = Pattern
 			.compile(".*\"yesUse\":([^,}]*).*");
-	
-	
+
+
 	private final String mac;
 	private final Date time;
 	private final String prod;
 	private final String serial;
-	private final int signal;
+	private final String router;
 	private final String type;
 	private final int cUse;
-	private final int maxUse;
 	private final int todUse;
 	private final int yesUse;
 	
@@ -69,11 +65,10 @@ public class LightwaveRfEnergyMonitorMessage extends AbstractLightwaveRfJsonMess
 		time = getDateFromText(TIME_ID_REG_EXP, message);
 		prod = getStringFromText(PROD_REG_EXP, message);
 		serial = getStringFromText(SERIAL_ID_REG_EXP, message);
-		signal = getIntFromText(SIGNAL_REG_EXP, message);
+		router = getStringFromText(ROUTER_REG_EXP, message);
 		type = getStringFromText(TYPE_REG_EXP, message);
 
 		cUse = getIntFromText(CURRENT_USE_REG_EXP, message);
-		maxUse = getIntFromText(MAX_USE_REG_EXP, message);
 		todUse = getIntFromText(TODAY_USE_REG_EXP, message);
 		yesUse = getIntFromText(YESTERDAY_USE_REG_EXP, message);
 	}
@@ -86,7 +81,7 @@ public class LightwaveRfEnergyMonitorMessage extends AbstractLightwaveRfJsonMess
 				.append("\",\"time\":").append(time.getTime())
 				.append(",\"prod\":\"").append(prod)
 				.append("\",\"serial\":\"").append(serial)
-				.append("\",\"signal\":").append(signal)
+				.append("\",\"router\":").append(router)
 				.append(",\"type\":\"").append(type)
 				.append(",\"cUse\":\"").append(type)
 				.append(",\"maxUse\":\"").append(type)
@@ -98,12 +93,8 @@ public class LightwaveRfEnergyMonitorMessage extends AbstractLightwaveRfJsonMess
 	@Override
 	public State getState(LightwaveRfType type) {
 		switch (type) {
-		case SIGNAL:
-			return new DecimalType(getSignal());
 		case ENERGY_CURRENT_USAGE:
 			return new DecimalType(getcUse());
-		case ENERGY_MAX_USAGE:
-			return new DecimalType(getMaxUse());
 		case ENERGY_TODAY_USAGE:
 			return new DecimalType(getTodUse());
 		case ENERGY_YESTERDAY_USAGE:
@@ -140,16 +131,12 @@ public class LightwaveRfEnergyMonitorMessage extends AbstractLightwaveRfJsonMess
 		return mac;
 	}
 	
-	public int getMaxUse() {
-		return maxUse;
-	}
-	
 	public String getProd() {
 		return prod;
 	}
 	
-	public int getSignal() {
-		return signal;
+	public String getRouter() {
+		return router;
 	}
 	
 	public Date getTime() {

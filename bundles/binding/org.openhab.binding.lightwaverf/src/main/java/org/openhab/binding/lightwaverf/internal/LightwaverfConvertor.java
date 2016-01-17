@@ -32,6 +32,8 @@ import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.PercentType;
 import org.openhab.core.types.Type;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Converts the openhab Type into a LightwaveRfCommand that can be sent to the
@@ -41,6 +43,9 @@ import org.openhab.core.types.Type;
  * @since 1.7.0
  */
 public class LightwaverfConvertor {
+
+	private static final Logger logger = LoggerFactory.getLogger(LightwaverfConvertor.class);
+
 
 	// LightwaveRF messageId
 	private int nextMessageId = 200;
@@ -138,18 +143,18 @@ public class LightwaverfConvertor {
 			return new LightwaveRfHeatInfoRequest(message);
 		} else if (LightwaveRfDimCommand.matches(message)) {
 			return new LightwaveRfDimCommand(message);
-		} else if (LightwaveRfOnOffCommand.matches(message)) {
-			return new LightwaveRfOnOffCommand(message);
 		} else if (LightwaveRfEnergyMonitorMessage.matches(message)){
 			return new LightwaveRfEnergyMonitorMessage(message);
-		} else if (LightwaveRfWifiLinkStatusMessage.matches(message)){
+		} else if (LightwaveRfOnOffCommand.matches(message)) {
+			return new LightwaveRfOnOffCommand(message);
+		}  else if (LightwaveRfWifiLinkStatusMessage.matches(message)){
 			return new LightwaveRfWifiLinkStatusMessage(message);
 		} else if (LightwaveRfMoodCommand.matches(message)){
 			return new LightwaveRfMoodCommand(message);
 		} else if (LightwaveRfAllOffCommand.matches(message)){
 			return new LightwaveRfAllOffCommand(message);
 		}
-		throw new LightwaveRfMessageException("Message not recorgnised: "
+		throw new LightwaveRfMessageException("Message not recognised: "
 				+ message);
 	}
 
