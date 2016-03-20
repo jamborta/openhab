@@ -15,10 +15,17 @@ import org.junit.Test;
 public class LightwaveRfCommandOkTest {
 
 	@Test
-	public void test() throws Exception {
+	public void testOk() throws Exception {
 		String message = "10,OK\n";
 		LightwaveRfCommandOk command = new LightwaveRfCommandOk(message);
 		assertEquals("010,OK\n", command.getLightwaveRfCommandString());
+	}
+	
+	@Test
+	public void testOkWithRfid() throws Exception {
+		String message = "412,OK,{\"RFid\": 218}";
+		LightwaveRfCommandOk command = new LightwaveRfCommandOk(message);
+		assertEquals("412", command.getMessageId().getMessageIdString());
 	}
 
 }

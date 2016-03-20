@@ -10,7 +10,8 @@ package org.openhab.binding.lightwaverf.internal;
 
 import static org.junit.Assert.assertEquals;
 
-import org.junit.Ignore;
+import java.util.List;
+
 import org.junit.Test;
 import org.openhab.binding.lightwaverf.internal.command.LightwaveRFCommand;
 import org.openhab.binding.lightwaverf.internal.command.LightwaveRfDeviceRegistrationCommand;
@@ -26,9 +27,9 @@ public class LightwaverfConvertorTest {
 	@Test
 	public void testConvertToLightwaveRfMessageOnCommand() throws Exception {
 		LightwaverfConvertor convertor = new LightwaverfConvertor();
-		LightwaveRFCommand command = convertor.convertToLightwaveRfMessage("2", "3", LightwaveRfType.SWITCH, OnOffType.ON);
+		List<LightwaveRFCommand> commands = convertor.convertToLightwaveRfMessage("2", "3", LightwaveRfType.SWITCH, OnOffType.ON);
 		LightwaveRFCommand expected = new LightwaveRfOnOffCommand("200,!R2D3F1");
-		assertEquals(expected.getLightwaveRfCommandString(), command.getLightwaveRfCommandString());
+		assertEquals(expected.getLightwaveRfCommandString(), commands.get(0).getLightwaveRfCommandString());
 	}
 
 	@Test
@@ -42,9 +43,9 @@ public class LightwaverfConvertorTest {
 	@Test
 	public void testConvertToLightwaveRfMessageOffCommand() throws Exception {
 		LightwaverfConvertor convertor = new LightwaverfConvertor();
-		LightwaveRFCommand command = convertor.convertToLightwaveRfMessage("2", "3", LightwaveRfType.SWITCH, OnOffType.OFF);
+		List<LightwaveRFCommand> commands = convertor.convertToLightwaveRfMessage("2", "3", LightwaveRfType.SWITCH, OnOffType.OFF);
 		LightwaveRFCommand expected = new LightwaveRfOnOffCommand("200,!R2D3F0");
-		assertEquals(expected.getLightwaveRfCommandString(), command.getLightwaveRfCommandString());
+		assertEquals(expected.getLightwaveRfCommandString(), commands.get(0).getLightwaveRfCommandString());
 	}
 
 	@Test
@@ -58,9 +59,9 @@ public class LightwaverfConvertorTest {
 	@Test
 	public void testConvertToLightwaveRfMessageDimCommand() throws Exception {
 		LightwaverfConvertor convertor = new LightwaverfConvertor();
-		LightwaveRFCommand command = convertor.convertToLightwaveRfMessage("2", "3", LightwaveRfType.DIMMER, new PercentType(75));
+		List<LightwaveRFCommand> commands = convertor.convertToLightwaveRfMessage("2", "3", LightwaveRfType.DIMMER, new PercentType(75));
 		LightwaveRFCommand expected = new LightwaveRfDimCommand("200,!R2D3FdP24");
-		assertEquals(expected.getLightwaveRfCommandString(), command.getLightwaveRfCommandString());
+		assertEquals(expected.getLightwaveRfCommandString(), commands.get(0).getLightwaveRfCommandString());
 	}
 
 	@Test
@@ -74,9 +75,9 @@ public class LightwaverfConvertorTest {
 	@Test
 	public void testConvertToLightwaveRfMessageSetTempCommand() throws Exception {
 		LightwaverfConvertor convertor = new LightwaverfConvertor();
-		LightwaveRFCommand command = convertor.convertToLightwaveRfMessage("2", null, LightwaveRfType.HEATING_SET_TEMP, new DecimalType(21.5));
+		List<LightwaveRFCommand> commands = convertor.convertToLightwaveRfMessage("2", null, LightwaveRfType.HEATING_SET_TEMP, new DecimalType(21.5));
 		LightwaveRFCommand expected = new LightwaveRfSetHeatingTemperatureCommand("200,!R2DhF*tP21.5");
-		assertEquals(expected.getLightwaveRfCommandString(), command.getLightwaveRfCommandString());
+		assertEquals(expected.getLightwaveRfCommandString(), commands.get(0).getLightwaveRfCommandString());
 	}
 
 	
