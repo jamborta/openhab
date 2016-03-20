@@ -422,5 +422,13 @@ public class LightwaveRfBinding extends
 	 */
 	void setWifiLink(LightwaveRfWifiLink mockWifiLink){
 		this.wifiLink = mockWifiLink;
-	}	
+	}
+
+	public void addBindingProvider(LightwaveRfBindingProvider bindingProvider) {
+		super.addBindingProvider(bindingProvider);
+	}
+
+	public void removeBindingProvider(LightwaveRfBindingProvider bindingProvider) {
+		super.removeBindingProvider(bindingProvider);
+	}
 }
