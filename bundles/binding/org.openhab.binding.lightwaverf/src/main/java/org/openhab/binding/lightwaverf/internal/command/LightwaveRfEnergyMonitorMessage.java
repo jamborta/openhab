@@ -23,6 +23,13 @@ import org.openhab.core.types.State;
  * A message received from the Energy Monitor. On
  * the LAN the messages look like: *!{"trans":20477,"mac":"03:41:C4","time":1453035345,
  * "prod":"pwrMtr","serial":"9470FE","router":"4F0500","type":"energy","cUse":333,"todUse":4026,"yesUse":0}
+ *
+ * UPDATE: 16 October 2016
+ *
+ * New message format
+ *
+ * {"trans":12119,"mac":"03:41:C4","time":1476642489,"pkt":"868R","fn":"meterData","prod":"pwrMtr","serial":"9470FE",
+ * "type":"energy","cUse":292,"todUse":6356}
  * 
  * @author Neil Renaud
  * @since 1.7.0
@@ -37,8 +44,6 @@ public class LightwaveRfEnergyMonitorMessage extends AbstractLightwaveRfJsonMess
 			.compile(".*\"prod\":\"([^\"}]*)\".*");
 	private static final Pattern SERIAL_ID_REG_EXP = Pattern
 			.compile(".*\"serial\":\"([^\"}]*)\".*");
-	private static final Pattern ROUTER_REG_EXP = Pattern
-			.compile(".*\"router\":\"([^\"}]*)\".*");
 	private static final Pattern TYPE_REG_EXP = Pattern
 			.compile(".*\"type\":\"([^\"}]*)\".*");
 	private static final Pattern CURRENT_USE_REG_EXP = Pattern
@@ -53,7 +58,6 @@ public class LightwaveRfEnergyMonitorMessage extends AbstractLightwaveRfJsonMess
 	private final Date time;
 	private final String prod;
 	private final String serial;
-	private final String router;
 	private final String type;
 	private final int cUse;
 	private final int todUse;
@@ -65,7 +69,6 @@ public class LightwaveRfEnergyMonitorMessage extends AbstractLightwaveRfJsonMess
 		time = getDateFromText(TIME_ID_REG_EXP, message);
 		prod = getStringFromText(PROD_REG_EXP, message);
 		serial = getStringFromText(SERIAL_ID_REG_EXP, message);
-		router = getStringFromText(ROUTER_REG_EXP, message);
 		type = getStringFromText(TYPE_REG_EXP, message);
 
 		cUse = getIntFromText(CURRENT_USE_REG_EXP, message);
@@ -134,11 +137,7 @@ public class LightwaveRfEnergyMonitorMessage extends AbstractLightwaveRfJsonMess
 	public String getProd() {
 		return prod;
 	}
-	
-	public String getRouter() {
-		return router;
-	}
-	
+
 	public Date getTime() {
 		return time;
 	}
