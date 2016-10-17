@@ -50,8 +50,6 @@ public class LightwaveRfEnergyMonitorMessage extends AbstractLightwaveRfJsonMess
 			.compile(".*\"cUse\":([^,}]*).*");
 	private static final Pattern TODAY_USE_REG_EXP = Pattern
 			.compile(".*\"todUse\":([^,}]*).*");
-	private static final Pattern YESTERDAY_USE_REG_EXP = Pattern
-			.compile(".*\"yesUse\":([^,}]*).*");
 
 
 	private final String mac;
@@ -61,8 +59,7 @@ public class LightwaveRfEnergyMonitorMessage extends AbstractLightwaveRfJsonMess
 	private final String type;
 	private final int cUse;
 	private final int todUse;
-	private final int yesUse;
-	
+
 	public LightwaveRfEnergyMonitorMessage(String message) throws LightwaveRfMessageException {
 		super(message);
 		mac = getStringFromText(MAC_ID_REG_EXP, message);
@@ -73,7 +70,6 @@ public class LightwaveRfEnergyMonitorMessage extends AbstractLightwaveRfJsonMess
 
 		cUse = getIntFromText(CURRENT_USE_REG_EXP, message);
 		todUse = getIntFromText(TODAY_USE_REG_EXP, message);
-		yesUse = getIntFromText(YESTERDAY_USE_REG_EXP, message);
 	}
 	
 	@Override
@@ -88,7 +84,6 @@ public class LightwaveRfEnergyMonitorMessage extends AbstractLightwaveRfJsonMess
 				.append(",\"cUse\":\"").append(type)
 				.append(",\"maxUse\":\"").append(type)
 				.append(",\"todUse\":\"").append(type)
-				.append(",\"yesUse\":\"").append(type)
 				.append("}").toString();
 	}
 
@@ -99,8 +94,6 @@ public class LightwaveRfEnergyMonitorMessage extends AbstractLightwaveRfJsonMess
 			return new DecimalType(getcUse());
 		case ENERGY_TODAY_USAGE:
 			return new DecimalType(getTodUse());
-		case ENERGY_YESTERDAY_USAGE:
-			return new DecimalType(getYesUse());
 		case UPDATETIME:
 			Calendar cal = Calendar.getInstance();
 			// The date seems to be in a strange timezone so at the moment we
@@ -148,11 +141,7 @@ public class LightwaveRfEnergyMonitorMessage extends AbstractLightwaveRfJsonMess
 	public String getType() {
 		return type;
 	}
-	
-	public int getYesUse() {
-		return yesUse;
-	}
-	
+
 	public int getcUse() {
 		return cUse;
 	}
