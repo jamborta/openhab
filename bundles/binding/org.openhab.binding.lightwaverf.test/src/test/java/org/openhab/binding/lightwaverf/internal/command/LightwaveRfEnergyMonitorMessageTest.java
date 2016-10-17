@@ -11,8 +11,8 @@ import org.openhab.core.library.types.DecimalType;
 public class LightwaveRfEnergyMonitorMessageTest {
 
 	private String messageString = "*!{\"trans\":15131,\"mac\":\"03:41:C4\"," +
-			"\"time\":1452954754,\"prod\":\"pwrMtr\",\"serial\":\"9470FE\",\"router\":\"4F0500\"," +
-			"\"type\":\"energy\",\"cUse\":356,\"todUse\":4126,\"yesUse\":0}";
+			"\"time\":1452954754,\"prod\":\"pwrMtr\",\"serial\":\"9470FE\"," +
+			"\"type\":\"energy\",\"cUse\":356,\"todUse\":4126}";
 	
 	@Test
 	public void testDecodingMessage() throws Exception {
@@ -21,11 +21,9 @@ public class LightwaveRfEnergyMonitorMessageTest {
 		assertEquals("03:41:C4", message.getMac());
 		assertEquals("pwrMtr", message.getProd());
 		assertEquals("9470FE", message.getSerial());
-		assertEquals("4F0500", message.getRouter());
 		assertEquals("energy", message.getType());
 		assertEquals(356, message.getcUse());
 		assertEquals(4126, message.getTodUse());
-		assertEquals(0, message.getYesUse());
 	}
 	
 	@Test
@@ -40,7 +38,6 @@ public class LightwaveRfEnergyMonitorMessageTest {
 		assertEquals(new DecimalType(271), message.getState(LightwaveRfType.ENERGY_CURRENT_USAGE));
 		assertEquals(new DecimalType(2812), message.getState(LightwaveRfType.ENERGY_MAX_USAGE));
 		assertEquals(new DecimalType(8414), message.getState(LightwaveRfType.ENERGY_TODAY_USAGE));
-		assertEquals(new DecimalType(8377), message.getState(LightwaveRfType.ENERGY_YESTERDAY_USAGE));
 		assertEquals(new DecimalType(79), message.getState(LightwaveRfType.SIGNAL));
 	}
 }
