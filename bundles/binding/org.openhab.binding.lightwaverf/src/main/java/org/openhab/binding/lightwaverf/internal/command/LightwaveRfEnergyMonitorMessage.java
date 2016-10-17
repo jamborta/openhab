@@ -84,7 +84,6 @@ public class LightwaveRfEnergyMonitorMessage extends AbstractLightwaveRfJsonMess
 				.append("\",\"time\":").append(time.getTime())
 				.append(",\"prod\":\"").append(prod)
 				.append("\",\"serial\":\"").append(serial)
-				.append("\",\"router\":").append(router)
 				.append(",\"type\":\"").append(type)
 				.append(",\"cUse\":\"").append(type)
 				.append(",\"maxUse\":\"").append(type)
